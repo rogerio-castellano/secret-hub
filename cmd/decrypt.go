@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -15,6 +16,7 @@ var (
 	decInputPath  string
 	decOutputPath string
 	decKeyPath    string
+	base64Input   bool
 )
 
 // decryptCmd represents the decrypt command
@@ -40,6 +42,13 @@ to quickly create a Cobra application.`,
 			return fmt.Errorf("failed to read input file: %w", err)
 		}
 
+		if base64Input {
+			ciphertext, err = base64.StdEncoding.DecodeString(string(ciphertext))
+			if err != nil {
+				return fmt.Errorf("base64 decoding failed: %w", err)
+			}
+		}
+
 		plaintext, err := crypto.Decrypt(key, ciphertext)
 		if err != nil {
 			return fmt.Errorf("decryption failed: %w", err)
@@ -61,6 +70,7 @@ func init() {
 	decryptCmd.Flags().StringVarP(&decInputPath, "in", "i", "", "Encrypted input file")
 	decryptCmd.Flags().StringVarP(&decOutputPath, "out", "o", "", "Decrypted output file")
 	decryptCmd.Flags().StringVarP(&decKeyPath, "key", "k", "", "Path to 32-byte decryption key")
+	decryptCmd.Flags().BoolVar(&base64Input, "base64", false, "Input is base64 encoded")
 
 	decryptCmd.MarkFlagRequired("in")
 	decryptCmd.MarkFlagRequired("out")

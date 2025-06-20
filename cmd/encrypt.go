@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -12,9 +13,10 @@ import (
 )
 
 var (
-	inputPath  string
-	outputPath string
-	keyPath    string
+	inputPath    string
+	outputPath   string
+	keyPath      string
+	base64Output bool
 )
 
 // encryptCmd represents the encrypt command
@@ -45,12 +47,22 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return fmt.Errorf("encryption failed: %w", err)
 		}
+
 		// Write output
 		//TODO: FileMode with 0644 - Public read, owner write; 0600 - Owner-only access
-		if err := os.WriteFile(outputPath, ciphertext, 0600); err != nil {
-			return fmt.Errorf("failed to write output file: %w", err)
+		if base64Output {
+			encoded := base64.StdEncoding.EncodeToString(ciphertext)
+			if err := os.WriteFile(outputPath, []byte(encoded), 0600); err != nil {
+				return fmt.Errorf("failed to write base64 output: %w", err)
+			}
+		} else {
+			if err := os.WriteFile(outputPath, ciphertext, 0600); err != nil {
+				return fmt.Errorf("failed to write output file: %w", err)
+			}
+
 		}
-		fmt.Printf("🔒 Secret encrypted successfully.", outputPath)
+
+		fmt.Println("🔒 Secret encrypted successfully.", outputPath)
 		return nil
 	},
 }
@@ -61,6 +73,7 @@ func init() {
 	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt")
 	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data")
 	encryptCmd.Flags().StringVarP(&keyPath, "key", "k", "", "Path to 32-byte encryption key")
+	encryptCmd.Flags().BoolVar(&base64Output, "base64", false, "Output as base64 instead of raw bytes")
 
 	encryptCmd.MarkFlagRequired("input")
 	encryptCmd.MarkFlagRequired("output")
