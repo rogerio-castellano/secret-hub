@@ -50,7 +50,7 @@ to quickly create a Cobra application.`,
 		if err := os.WriteFile(outputPath, ciphertext, 0600); err != nil {
 			return fmt.Errorf("failed to write output file: %w", err)
 		}
-		fmt.Printf("✅ Secret encrypted successfully.", outputPath)
+		fmt.Printf("🔒 Secret encrypted successfully.", outputPath)
 		return nil
 	},
 }
