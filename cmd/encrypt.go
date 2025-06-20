@@ -1,32 +1,70 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/spf13/cobra"
+)
+
+var (
+	inputPath  string
+	outputPath string
+	keyPath    string
 )
 
 // encryptCmd represents the encrypt command
 var encryptCmd = &cobra.Command{
 	Use:   "encrypt",
-	Short: "A brief description of your command",
+	Short: "Encrypt a secret using AES-256-GCM",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("encrypt called")
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// Load key
+		key, err := crypto.LoadKeyFromFile(keyPath)
+		if err != nil {
+			return fmt.Errorf("failed to load key: %w", err)
+		}
+		// Read input
+		plaintext, err := os.ReadFile(inputPath)
+		if err != nil {
+			return fmt.Errorf("failed to read input file: %w", err)
+		}
+
+		// Encrypt
+		ciphertext, err := crypto.Encrypt(key, plaintext)
+		if err != nil {
+			return fmt.Errorf("encryption failed: %w", err)
+		}
+		// Write output
+		//TODO: FileMode with 0644 - Public read, owner write; 0600 - Owner-only access
+		if err := os.WriteFile(outputPath, ciphertext, 0600); err != nil {
+			return fmt.Errorf("failed to write output file: %w", err)
+		}
+		fmt.Printf("✅ Secret encrypted successfully.", outputPath)
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(encryptCmd)
+
+	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt")
+	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data")
+	encryptCmd.Flags().StringVarP(&keyPath, "key", "k", "", "Path to 32-byte encryption key")
+
+	encryptCmd.MarkFlagRequired("input")
+	encryptCmd.MarkFlagRequired("output")
+	encryptCmd.MarkFlagRequired("key")
 
 	// Here you will define your flags and configuration settings.
 
