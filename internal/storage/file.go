@@ -93,3 +93,26 @@ func (fs *FileStore) ListNames() ([]string, error) {
 	sort.Strings(names)
 	return names, nil
 }
+
+func (fs *FileStore) Delete(name string) error {
+	secrets, err := fs.loadAll()
+	if err != nil {
+		return err
+	}
+
+	if _, exists := secrets[name]; !exists {
+		return errors.New("secret not found")
+	}
+
+	delete(secrets, name)
+
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	data, err := json.MarshalIndent(secrets, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(fs.Path, data, 0600)
+}
