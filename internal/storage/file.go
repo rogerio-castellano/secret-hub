@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"sort"
 	"sync"
 )
 
@@ -76,4 +77,19 @@ func (fs *FileStore) Get(name string) (*EncryptedSecret, error) {
 	}
 
 	return &secret, nil
+}
+
+func (fs *FileStore) ListNames() ([]string, error) {
+	secrets, err := fs.loadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, 0, len(secrets))
+	for name := range secrets {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+	return names, nil
 }
