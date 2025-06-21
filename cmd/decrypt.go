@@ -6,9 +6,10 @@ package cmd
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
+	"log"
 
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
+	"github.com/rogerio-castellano/secret-hub/internal/iox"
 	"github.com/spf13/cobra"
 )
 
@@ -32,20 +33,20 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(decKeyPath)
-		fmt.Println("🔑 Loading decryption key...", decKeyPath)
+		log.Println("🔑 Loading decryption key...", decKeyPath)
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
 		}
 
-		ciphertext, err := os.ReadFile(decInputPath)
+		ciphertext, err := iox.ReadInput(decInputPath)
 		if err != nil {
-			return fmt.Errorf("failed to read input file: %w", err)
+			return fmt.Errorf("failed to read input: %w", err)
 		}
 
 		if base64Input {
 			ciphertext, err = base64.StdEncoding.DecodeString(string(ciphertext))
 			if err != nil {
-				return fmt.Errorf("base64 decoding failed: %w", err)
+				return fmt.Errorf("base64 decoding failed(%s): %w", string(ciphertext), err)
 			}
 		}
 
@@ -54,11 +55,11 @@ to quickly create a Cobra application.`,
 			return fmt.Errorf("decryption failed: %w", err)
 		}
 
-		if err := os.WriteFile(decOutputPath, plaintext, 0600); err != nil {
-			return fmt.Errorf("failed to write output file: %w", err)
+		if err := iox.WriteOutput(decOutputPath, plaintext); err != nil {
+			return fmt.Errorf("failed to write output: %w", err)
 		}
 
-		fmt.Printf("🔓 Secret decrypted successfully.")
+		log.Printf("🔓 Secret decrypted successfully.")
 
 		return nil
 	},

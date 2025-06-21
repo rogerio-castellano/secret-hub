@@ -6,9 +6,10 @@ package cmd
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
+	"log"
 
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
+	"github.com/rogerio-castellano/secret-hub/internal/iox"
 	"github.com/spf13/cobra"
 )
 
@@ -36,10 +37,11 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
 		}
+
 		// Read input
-		plaintext, err := os.ReadFile(inputPath)
+		plaintext, err := iox.ReadInput(inputPath)
 		if err != nil {
-			return fmt.Errorf("failed to read input file: %w", err)
+			return fmt.Errorf("failed to read input: %w", err)
 		}
 
 		// Encrypt
@@ -49,20 +51,19 @@ to quickly create a Cobra application.`,
 		}
 
 		// Write output
-		//TODO: FileMode with 0644 - Public read, owner write; 0600 - Owner-only access
 		if base64Output {
 			encoded := base64.StdEncoding.EncodeToString(ciphertext)
-			if err := os.WriteFile(outputPath, []byte(encoded), 0600); err != nil {
+			if err := iox.WriteOutput(outputPath, []byte(encoded)); err != nil {
 				return fmt.Errorf("failed to write base64 output: %w", err)
 			}
 		} else {
-			if err := os.WriteFile(outputPath, ciphertext, 0600); err != nil {
+			if err := iox.WriteOutput(outputPath, ciphertext); err != nil {
 				return fmt.Errorf("failed to write output file: %w", err)
 			}
 
 		}
 
-		fmt.Println("🔒 Secret encrypted successfully.", outputPath)
+		log.Println("🔒 Secret encrypted successfully.", outputPath)
 		return nil
 	},
 }
