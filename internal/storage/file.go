@@ -63,3 +63,17 @@ func (fs *FileStore) Save(secret EncryptedSecret, overwrite bool) error {
 
 	return os.WriteFile(fs.Path, data, 0600)
 }
+
+func (fs *FileStore) Get(name string) (*EncryptedSecret, error) {
+	secrets, err := fs.loadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	secret, ok := secrets[name]
+	if !ok {
+		return nil, errors.New("secret not found")
+	}
+
+	return &secret, nil
+}
