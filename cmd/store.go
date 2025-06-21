@@ -1,6 +1,3 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -20,10 +17,6 @@ var (
 	storePath   string
 )
 
-// storeCmd represents the store command
-// storeCmd represents the "store" command for the CLI application.
-//
-// Short: Encrypt and store a secret by name.
 var storeCmd = &cobra.Command{
 	Use:   "store",
 	Short: "Encrypt and store a secret by name",
@@ -66,14 +59,4 @@ func init() {
 	storeCmd.MarkFlagRequired("name")
 	storeCmd.MarkFlagRequired("value")
 	storeCmd.MarkFlagRequired("key")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// storeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// storeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
