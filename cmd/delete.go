@@ -19,13 +19,12 @@ var (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a stored secret by name",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
+	Long: `Delete a secret from the secret store by specifying its name.
 
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+This command removes the secret with the given name from the specified store file.
+Example:
+  secret-hub delete --name mysecret --store secrets.json
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store := storage.NewFileStore("secrets.json")
 

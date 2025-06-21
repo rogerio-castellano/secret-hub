@@ -24,14 +24,14 @@ var (
 var encryptCmd = &cobra.Command{
 	Use:   "encrypt",
 	Short: "Encrypt a secret using AES-256-GCM",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
+	Long: `Encrypts a secret file using AES-256-GCM encryption.
 
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+You must provide an input file, an output file, and a 32-byte key file.
+Optionally, you can output the encrypted data as base64.
 
+Example:
+  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin --base64
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Load key
 		key, err := crypto.LoadKeyFromFile(keyPath)

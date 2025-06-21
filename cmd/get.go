@@ -22,13 +22,11 @@ var (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Retrieve and decrypt a secret by name",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
+	Long: `The get command retrieves a secret from the specified store by its name,
+decrypts it using the provided key, and prints the plaintext value to stdout.
 
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+You must provide the name of the secret, the path to the decryption key, and optionally
+the path to the secret store file.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(getKeyPath)
 		if err != nil {

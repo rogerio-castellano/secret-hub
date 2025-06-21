@@ -20,17 +20,16 @@ var (
 	base64Input   bool
 )
 
-// decryptCmd represents the decrypt command
 var decryptCmd = &cobra.Command{
 	Use:   "decrypt",
 	Short: "Decrypt a secret using AES-256-GCM",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
+	Long: `The "decrypt" command allows you to decrypt a secret that was previously encrypted using the AES-256-GCM algorithm. 
+You must provide a valid decryption key file and the encrypted input (either as a file or from standard input). 
+Optionally, if the input is base64-encoded, you can specify this to decode before decryption. 
+The decrypted plaintext will be written to the specified output path or to standard output if no path is provided.
 
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+Usage:
+  decrypt --key <keyfile> --input <ciphertext> [--output <plaintext>] [--base64]`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(decKeyPath)
 		log.Println("🔑 Loading decryption key...", decKeyPath)

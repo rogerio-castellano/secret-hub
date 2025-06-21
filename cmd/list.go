@@ -16,13 +16,8 @@ var listStorePath string
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all stored secret names",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
-
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+	Long: `List displays the names of all secrets currently stored in the secret store file. 
+	Use this command to view which secrets are available without revealing their values.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store := storage.NewFileStore(listStorePath)
 

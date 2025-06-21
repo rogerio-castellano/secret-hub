@@ -21,16 +21,17 @@ var (
 )
 
 // storeCmd represents the store command
+// storeCmd represents the "store" command for the CLI application.
+//
+// Short: Encrypt and store a secret by name.
 var storeCmd = &cobra.Command{
 	Use:   "store",
 	Short: "Encrypt and store a secret by name",
-	//TODO: Add a Long description
-	// 	Long: `A longer description that spans multiple lines and likely contains examples
-	// and usage of using your command. For example:
-
-	// Cobra is a CLI library for Go that empowers applications.
-	// This application is a tool to generate the needed files
-	// to quickly create a Cobra application.`,
+	Long: `The "store" command allows you to securely encrypt a secret value using a provided key
+and store it under a specified name. The secret is encrypted with the key loaded from a file,
+and then saved to the configured storage backend. If a secret with the same name already exists,
+you can use the force flag to overwrite it. This command ensures that sensitive information is
+never stored in plaintext, providing an additional layer of security for secret management. `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(storeKey)
 		if err != nil {
