@@ -1,56 +1,77 @@
-# secret-hub
+# 🔐 secret-hub
 
-CLI to encrypt/decrypt &amp; store secrets using AES
+A lightweight CLI tool for encrypting, decrypting, and securely storing secrets using AES encryption --- built in Go.
 
-## Features
+## 🚀 Features
 
-- Encrypt and decrypt secrets using AES-256-GCM
-- Store secrets securely in local files
-- Simple CLI interface for managing secrets
-- Cross-platform support
+- 🔒 AES-based encryption & decryption
 
-## Installation
+- 📁 Local secret storage
 
-```sh
-go install github.com/yourusername/secret-hub@latest
+- 🧪 Simple CLI interface
+
+- 🛠️ Built with Go modules
+
+## 📦 Installation
+
+Clone the repo and build:
+
+bash
+
+```
+git clone https://github.com/rogerio-castellano/secret-hub.git
+cd secret-hub
+go build -o secret-hub
+
 ```
 
-## Usage
+## 🧰 Usage
 
-### Encrypt a secret
+### 🔐 Encrypt a secret
 
-```sh
-secret-hub encrypt --key <your-key> --in secret.txt --out secret.enc
+bash
+
+```
+./secret-hub encrypt --key my-secret-key --value "super-sensitive-data"
+
 ```
 
-### Decrypt a secret
+### 🔓 Decrypt a secret
 
-```sh
-secret-hub decrypt --key <your-key> --in secret.enc --out secret.txt
+bash
+
+```
+./secret-hub decrypt --key my-secret-key --value "<encrypted-string>"
+
 ```
 
-### Store a secret
+### 📁 Store a secret
 
-```sh
-secret-hub store --key <your-key> --name <secret-name> --value <secret-value>
+bash
+
+```
+./secret-hub store --key my-secret-key --name db_password --value "p@ssw0rd"
+
 ```
 
-### Retrieve a secret
+### 📤 Retrieve a stored secret
 
-```sh
-secret-hub get --key <your-key> --name <secret-name>
+bash
+
+```
+./secret-hub get --key my-secret-key --name db_password
+
 ```
 
-## Security
+## 🛠 Tech Stack
 
-- Uses AES-256-GCM for encryption
-- Secrets are never stored in plaintext
-- Key management is the user's responsibility
+| Component | Description                                        |
+| --------- | -------------------------------------------------- |
+| Language  | Go                                                 |
+| Crypto    | AES                                                |
+| CLI       | Cobra (if used)                                    |
+| Storage   | Local file or memory (depending on implementation) |
 
-## Contributing
+## 📜 License
 
-Contributions are welcome! Please open issues or pull requests.
-
-## License
-
-MIT License
+MIT --- free to use, modify, and share.
