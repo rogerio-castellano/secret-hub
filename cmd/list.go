@@ -13,7 +13,11 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all stored secret names",
 	Long: `List displays the names of all secrets currently stored in the secret store file. 
-	Use this command to view which secrets are available without revealing their values.`,
+Use this command to view which secrets are available without revealing their values.
+
+Example:
+  secret-hub list`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store := storage.NewFileStore(listStorePath)
 

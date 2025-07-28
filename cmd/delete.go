@@ -18,7 +18,8 @@ var deleteCmd = &cobra.Command{
 	Long: `Delete a secret from the secret store by specifying its name.
 
 This command removes the secret with the given name from the specified store file.
-Example:
+Examples:
+  secret-hub delete --name db_password
   secret-hub delete --name mysecret --store secrets.json
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

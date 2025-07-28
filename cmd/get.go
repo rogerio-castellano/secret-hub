@@ -22,7 +22,10 @@ var getCmd = &cobra.Command{
 decrypts it using the provided key, and prints the plaintext value to stdout.
 
 You must provide the name of the secret, the path to the decryption key, and optionally
-the path to the secret store file.`,
+the path to the secret store file.
+
+Example:
+  secret-hub get --key mykey.bin --name db_password`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(getKeyPath)
 		if err != nil {
@@ -48,8 +51,8 @@ the path to the secret store file.`,
 func init() {
 	rootCmd.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getSecretName, "name", "", "Name of the secret")
-	getCmd.Flags().StringVar(&getKeyPath, "key", "", "Path to decryption key")
+	getCmd.Flags().StringVar(&getSecretName, "name", "", "Name of the secret (required)")
+	getCmd.Flags().StringVar(&getKeyPath, "key", "", "Path to decryption key (required)")
 	getCmd.Flags().StringVar(&getStorePath, "store", "secrets.json", "Path to the secret store file")
 
 	getCmd.MarkFlagRequired("name")

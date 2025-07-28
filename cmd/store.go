@@ -24,7 +24,11 @@ var storeCmd = &cobra.Command{
 and store it under a specified name. The secret is encrypted with the key loaded from a file,
 and then saved to the configured storage backend. If a secret with the same name already exists,
 you can use the force flag to overwrite it. This command ensures that sensitive information is
-never stored in plaintext, providing an additional layer of security for secret management. `,
+never stored in plaintext, providing an additional layer of security for secret management.
+
+Example:
+  secret-hub store --key mykey.bin --name db_password --value "p@ssw0rd"
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(storeKey)
 		if err != nil {
@@ -53,7 +57,7 @@ func init() {
 	storeCmd.Flags().StringVar(&secretName, "name", "", "Name of the secret to store (required)")
 	storeCmd.Flags().StringVar(&secretValue, "value", "", "Value of the secret to store (required)")
 	storeCmd.Flags().StringVar(&storeKey, "key", "", "Path to the encryption key file (required)")
-	storeCmd.Flags().StringVar(&storePath, "store", "secrets.json", "Path to the storage file (required)")
+	storeCmd.Flags().StringVar(&storePath, "store", "secrets.json", "Path to the storage file")
 	storeCmd.Flags().BoolVar(&forceStore, "force", false, "Force overwrite existing secret")
 
 	storeCmd.MarkFlagRequired("name")

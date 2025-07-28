@@ -26,7 +26,7 @@ You must provide an input file, an output file, and a 32-byte key file.
 Optionally, you can output the encrypted data as base64.
 
 Example:
-  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin --base64
+  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin [--base64]
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Load key
@@ -68,9 +68,9 @@ Example:
 func init() {
 	rootCmd.AddCommand(encryptCmd)
 
-	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt")
-	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data")
-	encryptCmd.Flags().StringVarP(&keyPath, "key", "k", "", "Path to 32-byte encryption key")
+	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt (required)")
+	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data (required)")
+	encryptCmd.Flags().StringVarP(&keyPath, "key", "k", "", "Path to 32-byte encryption key (required)")
 	encryptCmd.Flags().BoolVar(&base64Output, "base64", false, "Output as base64 instead of raw bytes")
 
 	encryptCmd.MarkFlagRequired("input")

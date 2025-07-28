@@ -26,7 +26,11 @@ Optionally, if the input is base64-encoded, you can specify this to decode befor
 The decrypted plaintext will be written to the specified output path or to standard output if no path is provided.
 
 Usage:
-  decrypt --key <keyfile> --input <ciphertext> [--output <plaintext>] [--base64]`,
+  decrypt --key <keyfile> --input <ciphertext> [--output <plaintext>] [--base64]
+  
+Example:
+  secret-hub decrypt --in secret.enc --out secret-dec.txt --key mykey.bin
+  `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := crypto.LoadKeyFromFile(decKeyPath)
 		log.Println("🔑 Loading decryption key...", decKeyPath)
@@ -64,9 +68,9 @@ Usage:
 func init() {
 	rootCmd.AddCommand(decryptCmd)
 
-	decryptCmd.Flags().StringVarP(&decInputPath, "in", "i", "", "Encrypted input file")
-	decryptCmd.Flags().StringVarP(&decOutputPath, "out", "o", "", "Decrypted output file")
-	decryptCmd.Flags().StringVarP(&decKeyPath, "key", "k", "", "Path to 32-byte decryption key")
+	decryptCmd.Flags().StringVarP(&decInputPath, "in", "i", "", "Encrypted input file (required)")
+	decryptCmd.Flags().StringVarP(&decOutputPath, "out", "o", "", "Decrypted output file (required)")
+	decryptCmd.Flags().StringVarP(&decKeyPath, "key", "k", "", "Path to 32-byte decryption key (required)")
 	decryptCmd.Flags().BoolVar(&base64Input, "base64", false, "Input is base64 encoded")
 
 	decryptCmd.MarkFlagRequired("in")
