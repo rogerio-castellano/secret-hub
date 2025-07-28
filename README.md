@@ -16,51 +16,36 @@ A lightweight CLI tool for encrypting, decrypting, and securely storing secrets 
 
 Clone the repo and build:
 
-bash
-
-```
+```bash
 git clone https://github.com/rogerio-castellano/secret-hub.git
 cd secret-hub
 go build -o secret-hub
-
 ```
 
 ## 🧰 Usage
 
 ### 🔐 Encrypt a secret
 
-bash
-
-```
+```bash
 ./secret-hub encrypt --key my-secret-key --value "super-sensitive-data"
-
 ```
 
 ### 🔓 Decrypt a secret
 
-bash
-
-```
+```bash
 ./secret-hub decrypt --key my-secret-key --value "<encrypted-string>"
-
 ```
 
 ### 📁 Store a secret
 
-bash
-
-```
+```bash
 ./secret-hub store --key my-secret-key --name db_password --value "p@ssw0rd"
-
 ```
 
 ### 📤 Retrieve a stored secret
 
-bash
-
-```
+```bash
 ./secret-hub get --key my-secret-key --name db_password
-
 ```
 
 ## 🛠 Tech Stack
