@@ -66,6 +66,12 @@ go build -o secret-hub
 ./secret-hub list
 ```
 
+### 🔍 Search secret names by substring (case-insensitive)
+
+```bash
+./secret-hub search --query db
+```
+
 ## 🛠 Tech Stack
 
 | Component | Description  |
