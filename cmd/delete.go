@@ -5,11 +5,11 @@ import (
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
-	deleteName      string
-	deleteStorePath string
+	deleteName string
 )
 
 var deleteCmd = &cobra.Command{
@@ -23,8 +23,8 @@ Examples:
   secret-hub delete --name mysecret --store secrets.json
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		store := storage.NewFileStore("secrets.json")
-
+		storagePath := getStorage("delete")
+		store := storage.NewFileStore(storagePath)
 		if err := store.Delete(deleteName); err != nil {
 			return fmt.Errorf("failed to delete secret '%s': %w", deleteName, err)
 		}
@@ -36,8 +36,9 @@ Examples:
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().StringVar(&deleteName, "name", "", "Name of the secret to delete")
-	deleteCmd.Flags().StringVar(&deleteStorePath, "store", "secrets.json", "Path to the secret store file")
+	deleteCmd.Flags().StringVarP(&deleteName, "name", "n", "", "Name of the secret to delete")
+	deleteCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
+	viper.BindPFlag("delete.storage", deleteCmd.Flags().Lookup("storage"))
 
 	deleteCmd.MarkFlagRequired("name")
 }

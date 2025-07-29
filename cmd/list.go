@@ -5,9 +5,8 @@ import (
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-var listStorePath string
 
 var listCmd = &cobra.Command{
 	Use:   "list",
@@ -19,7 +18,8 @@ Example:
   secret-hub list`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		store := storage.NewFileStore(listStorePath)
+		storagePath := getStorage("list")
+		store := storage.NewFileStore(storagePath)
 
 		names, err := store.ListNames()
 		if err != nil {
@@ -41,5 +41,6 @@ Example:
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().StringVar(&listStorePath, "store", "secrets.json", "Path to the secret store file")
+	listCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
+	viper.BindPFlag("list.storage", listCmd.Flags().Lookup("storage"))
 }

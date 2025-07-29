@@ -6,11 +6,11 @@ import (
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
-	searchQuery     string
-	searchStorePath string
+	searchQuery string
 )
 
 var searchCmd = &cobra.Command{
@@ -22,7 +22,8 @@ Example:
   secret-hub search --query TOKEN
   secret-hub search --query email --store my-secrets.json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		store := storage.NewFileStore(searchStorePath)
+		storagePath := getStorage("search")
+		store := storage.NewFileStore(storagePath)
 
 		names, err := store.ListNames()
 		if err != nil {
@@ -52,8 +53,9 @@ Example:
 func init() {
 	rootCmd.AddCommand(searchCmd)
 
-	searchCmd.Flags().StringVar(&searchQuery, "query", "", "Substring to search for (case-insensitive)")
-	searchCmd.Flags().StringVar(&searchStorePath, "store", "secrets.json", "Path to the secret store file")
+	searchCmd.Flags().StringVarP(&searchQuery, "query", "q", "", "Substring to search for (case-insensitive)")
+	searchCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
+	viper.BindPFlag("search.storage", searchCmd.Flags().Lookup("storage"))
 
 	searchCmd.MarkFlagRequired("query")
 }

@@ -8,12 +8,12 @@ import (
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/rogerio-castellano/secret-hub/internal/iox"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
 	inputPath    string
 	outputPath   string
-	keyPath      string
 	base64Output bool
 )
 
@@ -29,7 +29,8 @@ Example:
   secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin [--base64]
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Load key
+		keyPath := getKey("encrypt")
+		fmt.Println("Using", keyPath, "to encrypt.")
 		key, err := crypto.LoadKeyFromFile(keyPath)
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
@@ -70,10 +71,10 @@ func init() {
 
 	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt (required)")
 	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data (required)")
-	encryptCmd.Flags().StringVarP(&keyPath, "key", "k", "", "Path to 32-byte encryption key (required)")
+	encryptCmd.Flags().StringP("key", "k", "", "Encryption key path (required unless specified in config).")
+	viper.BindPFlag("encrypt.key", encryptCmd.Flags().Lookup("key"))
 	encryptCmd.Flags().BoolVar(&base64Output, "base64", false, "Output as base64 instead of raw bytes")
 
 	encryptCmd.MarkFlagRequired("input")
 	encryptCmd.MarkFlagRequired("output")
-	encryptCmd.MarkFlagRequired("key")
 }

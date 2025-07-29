@@ -7,12 +7,11 @@ import (
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
 	getSecretName string
-	getKeyPath    string
-	getStorePath  string
 )
 
 var getCmd = &cobra.Command{
@@ -27,12 +26,14 @@ the path to the secret store file.
 Example:
   secret-hub get --key mykey.bin --name db_password`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		key, err := crypto.LoadKeyFromFile(getKeyPath)
+		keyPath := getKey("get")
+		storagePath := getStorage("get")
+		key, err := crypto.LoadKeyFromFile(keyPath)
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
 		}
 
-		store := storage.NewFileStore(getStorePath)
+		store := storage.NewFileStore(storagePath)
 		secret, err := store.Get(getSecretName)
 		if err != nil {
 			return fmt.Errorf("failed to retrieve secret: %w", err)
@@ -51,10 +52,11 @@ Example:
 func init() {
 	rootCmd.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getSecretName, "name", "", "Name of the secret (required)")
-	getCmd.Flags().StringVar(&getKeyPath, "key", "", "Path to decryption key (required)")
-	getCmd.Flags().StringVar(&getStorePath, "store", "secrets.json", "Path to the secret store file")
+	getCmd.Flags().StringVarP(&getSecretName, "name", "n", "", "Name of the secret (required)")
+	getCmd.Flags().StringP("key", "k", "", "Decryption key path (required unless specified in config).")
+	getCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
+	viper.BindPFlag("get.key", getCmd.Flags().Lookup("key"))
+	viper.BindPFlag("get.storage", getCmd.Flags().Lookup("storage"))
 
 	getCmd.MarkFlagRequired("name")
-	getCmd.MarkFlagRequired("key")
 }

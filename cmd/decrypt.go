@@ -8,12 +8,12 @@ import (
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/rogerio-castellano/secret-hub/internal/iox"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
 	decInputPath  string
 	decOutputPath string
-	decKeyPath    string
 	base64Input   bool
 )
 
@@ -32,8 +32,9 @@ Example:
   secret-hub decrypt --in secret.enc --out secret-dec.txt --key mykey.bin
   `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		key, err := crypto.LoadKeyFromFile(decKeyPath)
-		log.Println("🔑 Loading decryption key...", decKeyPath)
+		keyPath := getKey("decrypt")
+		key, err := crypto.LoadKeyFromFile(keyPath)
+		log.Println("🔑 Loading decryption key...", keyPath)
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
 		}
@@ -70,10 +71,11 @@ func init() {
 
 	decryptCmd.Flags().StringVarP(&decInputPath, "in", "i", "", "Encrypted input file (required)")
 	decryptCmd.Flags().StringVarP(&decOutputPath, "out", "o", "", "Decrypted output file (required)")
-	decryptCmd.Flags().StringVarP(&decKeyPath, "key", "k", "", "Path to 32-byte decryption key (required)")
+	decryptCmd.Flags().StringP("key", "k", "", "Decryption key path (required unless specified in config).")
+	viper.BindPFlag("decrypt.key", decryptCmd.Flags().Lookup("key"))
+
 	decryptCmd.Flags().BoolVar(&base64Input, "base64", false, "Input is base64 encoded")
 
 	decryptCmd.MarkFlagRequired("in")
 	decryptCmd.MarkFlagRequired("out")
-	decryptCmd.MarkFlagRequired("key")
 }

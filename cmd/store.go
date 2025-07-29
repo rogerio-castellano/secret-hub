@@ -7,6 +7,7 @@ import (
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -30,6 +31,8 @@ Example:
   secret-hub store --key mykey.bin --name db_password --value "p@ssw0rd"
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		storeKey = getKey("store")
+		storePath = getStorage("store")
 		key, err := crypto.LoadKeyFromFile(storeKey)
 		if err != nil {
 			return fmt.Errorf("failed to load key: %w", err)
@@ -54,13 +57,14 @@ Example:
 func init() {
 	rootCmd.AddCommand(storeCmd)
 
-	storeCmd.Flags().StringVar(&secretName, "name", "", "Name of the secret to store (required)")
-	storeCmd.Flags().StringVar(&secretValue, "value", "", "Value of the secret to store (required)")
-	storeCmd.Flags().StringVar(&storeKey, "key", "", "Path to the encryption key file (required)")
-	storeCmd.Flags().StringVar(&storePath, "store", "secrets.json", "Path to the storage file")
-	storeCmd.Flags().BoolVar(&forceStore, "force", false, "Force overwrite existing secret")
+	storeCmd.Flags().StringVarP(&secretName, "name", "n", "", "Name of the secret to store (required)")
+	storeCmd.Flags().StringVarP(&secretValue, "value", "l", "", "Value of the secret to store (required)")
+	storeCmd.Flags().StringVarP(&storeKey, "key", "k", "", "Encryption key path (required unless specified in config).")
+	storeCmd.Flags().StringVarP(&storePath, "storage", "s", "", "Path to the storage file (default to secrets.json)")
+	storeCmd.Flags().BoolVarP(&forceStore, "force", "f", false, "Force overwrite existing secret")
+	viper.BindPFlag("store.key", storeCmd.Flags().Lookup("key"))
+	viper.BindPFlag("store.storage", storeCmd.Flags().Lookup("storage"))
 
 	storeCmd.MarkFlagRequired("name")
 	storeCmd.MarkFlagRequired("value")
-	storeCmd.MarkFlagRequired("key")
 }
