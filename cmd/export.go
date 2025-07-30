@@ -26,6 +26,9 @@ Supports .env, JSON, and YAML formats to accommodate different integration needs
 This is useful for injecting secrets into local development environments,
 generating configuration files, or importing into other secret management systems.
 
+Usage:
+  export --format <env|json|yaml> [--key <keyfile>] [--storage <filepath>]
+
 Examples:
   secret-hub export --format env --key key.bin
   secret-hub export --format json --key key.bin > exported-secrets.json
