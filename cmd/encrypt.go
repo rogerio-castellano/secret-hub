@@ -77,10 +77,10 @@ func init() {
 	}
 	encryptCmd.Flags().BoolVar(&base64Output, "base64", false, "Output as base64 instead of raw bytes")
 
-	if err := encryptCmd.MarkFlagRequired("input"); err != nil {
+	if err := encryptCmd.MarkFlagRequired("in"); err != nil {
 		log.Fatalf("Failed to mark flag required: %v", err)
 	}
-	if err := encryptCmd.MarkFlagRequired("output"); err != nil {
+	if err := encryptCmd.MarkFlagRequired("out"); err != nil {
 		log.Fatalf("Failed to mark flag required: %v", err)
 	}
 }
