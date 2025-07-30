@@ -16,13 +16,18 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "secret-hub",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "CLI tool for encrypting, storing, and retrieving secrets securely",
+	Long: `secret-hub is a command-line tool written in Go for managing secrets locally using AES-256 encryption.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+It supports:
+- Generating secure keys
+- Encrypting and decrypting files
+- Storing encrypted secrets by name
+- Retrieving, listing, searching, and deleting secrets
+
+Secrets can be supplied provided either as direct key values or sourced from external files. 
+The resulting data is saved locally for easy retrieval. 
+Keys are structured in JSON format, and all files are securely stored using encryption to protect sensitive information.`,
 }
 
 // Execute runs the root command

@@ -18,14 +18,20 @@ var (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Retrieve and decrypt a secret by name",
-	Long: `The get command retrieves a secret from the specified store by its name,
-decrypts it using the provided key, and prints the plaintext value to stdout.
+	Long: `Retrieve and decrypt a secret by name using AES-256-GCM.
 
-You must provide the name of the secret, the path to the decryption key, and optionally
-the path to the secret store file.
+This command retrieves a secret from the designated storage backend using its name, decrypts it with the provided AES-256-GCM key, and prints the plaintext to standard output. You must specify the name of the secret and a valid decryption key, which can be loaded either from a .secret-hub.yaml configuration file in $HOME or from a standalone 32-byte key file.
+
+Optionally, you may specify a custom path to the secret store file. If no path is given, the default storage backend is used.
+
+Usage 
+	get --name <secret_name> [--key <keyfile>] [--storage <filepath>]
 
 Example:
-  secret-hub get --key mykey.bin --name db_password`,
+  secret-hub get --name db_password --key mykey.bin --storage secret-store.json
+  secret-hub get --name db_password
+`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("get")
 		storagePath := getStorage("get")

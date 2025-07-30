@@ -12,11 +12,17 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all stored secret names",
-	Long: `List displays the names of all secrets currently stored in the secret store file. 
-Use this command to view which secrets are available without revealing their values.
+	Long: `List all stored secret names without revealing their values.
+
+This command reads the configured secret store file and displays the names of all secrets currently saved. It helps you identify which secrets exist in the store without exposing their content. The storage path can be explicitly defined using a flag or sourced from the configuration file .secret-hub.yaml in $HOME. If no secrets are present, a friendly message is displayed.
+
+Usage 
+	list [--storage <filepath>]
 
 Example:
-  secret-hub list`,
+  secret-hub list --storage secret-store.json
+  secret-hub list
+  `,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storagePath := getStorage("list")

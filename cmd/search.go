@@ -17,11 +17,21 @@ var (
 var searchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "Search for stored secret names by substring",
-	Long: `Search stored secrets for names that match a given substring.
+	Long: `Search stored secret names by substring match.
+
+This command scans all secret names stored in the configured secret file and returns those that include the specified substring, matched in a case-insensitive manner. It allows quick discovery of secrets based on partial naming patterns.
+
+By default, the secret store is resolved from the .secret-hub.yaml configuration file in $HOME. You can also explicitly define the storage path with the --storage flag.
+
+If no matching names are found, a friendly notice will be displayed. This command is useful for locating secrets without decrypting them or exposing their contents.
+
+Usage 
+	search --query <substring> [--storage <filepath>]
 
 Example:
-  secret-hub search --query TOKEN
-  secret-hub search --query email --store my-secrets.json`,
+  secret-hub search --query db --storage secret-store.json
+  secret-hub search --query db
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storagePath := getStorage("search")
 		store := storage.NewFileStore(storagePath)

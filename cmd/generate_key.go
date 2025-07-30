@@ -16,10 +16,19 @@ var (
 var generateKeyCmd = &cobra.Command{
 	Use:   "generate-key",
 	Short: "Generate a 256-bit AES key",
-	Long: `Generate a secure 256-bit (32-byte) random key for use with AES-256 encryption.
+	Long: `Generate a secure 256-bit AES key for encryption and decryption.
+
+This command creates a cryptographically strong 32-byte (256-bit) random key suitable for AES-256-GCM operations. The key is generated using a secure random source and saved to a specified file path. This key can later be used with other commands such as encrypt, decrypt, or store.
+
+By default, the key is written to a file named key.bin unless a different path is provided using the --out flag. The output file is saved with restrictive permissions to safeguard against unauthorized access.
+
+Usage 
+	generate-key [--out <keyfile>]
 
 Example:
-  secret-hub generate-key --out mykey.bin`,
+  secret-hub generate-key --out custom-key.bin
+  secret-hub generate-key
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key := make([]byte, 32)
 		_, err := rand.Read(key)
@@ -40,5 +49,5 @@ Example:
 func init() {
 	rootCmd.AddCommand(generateKeyCmd)
 
-	generateKeyCmd.Flags().StringVarP(&keyOutputPath, "out", "o", "mykey.bin", "Path to write the generated key")
+	generateKeyCmd.Flags().StringVarP(&keyOutputPath, "out", "o", "key.bin", "Path to write the generated key")
 }

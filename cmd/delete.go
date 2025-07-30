@@ -16,12 +16,18 @@ var (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a stored secret by name",
-	Long: `Delete a secret from the secret store by specifying its name.
+	Long: `Delete a stored secret by name from the configured secret store.
 
-This command removes the secret with the given name from the specified store file.
+This command removes a secret from the storage backend by specifying its unique name. You must provide the name of the secret to delete. By default, the secret store path is loaded from the .secret-hub.yaml configuration file in $HOME. If this file is unavailable, a custom storage path can be provided using the --storage flag.
+
+If the specified secret does not exist, an error message will be displayed. Successfully deleted secrets will be acknowledged with a confirmation output.
+
+Usage 
+	delete --name <secret_name> [--storage <filepath>]
+
 Examples:
+  secret-hub delete --name mysecret --storage secret-store.json
   secret-hub delete --name db_password
-  secret-hub delete --name mysecret --store secrets.json
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storagePath := getStorage("delete")

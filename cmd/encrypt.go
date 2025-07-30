@@ -20,13 +20,22 @@ var (
 var encryptCmd = &cobra.Command{
 	Use:   "encrypt",
 	Short: "Encrypt a secret using AES-256-GCM",
-	Long: `Encrypts a secret file using AES-256-GCM encryption.
+	Long: `Encrypt a secret using AES-256-GCM.
 
-You must provide an input file, an output file, and a 32-byte key file.
-Optionally, you can output the encrypted data as base64.
+This command encrypts a secret from a file or standard input using the AES-256-GCM algorithm. 
+You must specify both an input file and an output destination. By default, the encryption key is loaded from 
+a configuration file named .secret-hub.yaml in the $HOME directory. If this file is not present, 
+a separate key file containing a valid 32-byte encryption key must be provided.
 
-Example:
-  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin [--base64]
+Optionally, the encrypted output can be base64-encoded before being written to the specified output path.
+
+Usage:
+  encrypt --input <plaintext> --output <ciphertext> [--key <keyfile>] [--base64]
+
+Examples:
+  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin
+  secret-hub encrypt --in secret.txt --out secret.enc
+  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin --base64
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("encrypt")

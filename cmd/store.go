@@ -21,14 +21,22 @@ var (
 var storeCmd = &cobra.Command{
 	Use:   "store",
 	Short: "Encrypt and store a secret by name",
-	Long: `The "store" command allows you to securely encrypt a secret value using a provided key
-and store it under a specified name. The secret is encrypted with the key loaded from a file,
-and then saved to the configured storage backend. If a secret with the same name already exists,
-you can use the force flag to overwrite it. This command ensures that sensitive information is
-never stored in plaintext, providing an additional layer of security for secret management.
+	Long: `Encrypt and store a secret by name using AES-256-GCM.
+
+This command securely encrypts a secret value with the AES-256-GCM algorithm and stores it under a unique name. 
+You must provide both the secret value and its corresponding name, as well as an encryption key sourced either 
+from a .secret-hub.yaml config file in $HOME or from a separate key file containing a valid 32-byte key. 
+
+The encrypted secret is saved to the specified storage backend (default: secrets.json). 
+If a secret with the same name already exists, use the --force flag to overwrite it.
+
+Usage:
+  store --name <secret_name> --value <secret_value> [--key <keyfile>] [--storage <filepath>] [--force]
 
 Example:
-  secret-hub store --key mykey.bin --name db_password --value "p@ssw0rd"
+  secret-hub store --key mykey.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" 
+  secret-hub store --name db_password --value "p@ssw0rd"
+  secret-hub store --key mykey.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" --force
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storeKey = getKey("store")

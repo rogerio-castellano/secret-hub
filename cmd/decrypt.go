@@ -20,16 +20,23 @@ var (
 var decryptCmd = &cobra.Command{
 	Use:   "decrypt",
 	Short: "Decrypt a secret using AES-256-GCM",
-	Long: `The "decrypt" command allows you to decrypt a secret that was previously encrypted using the AES-256-GCM algorithm. 
-You must provide a valid decryption key file and the encrypted input (either as a file or from standard input). 
-Optionally, if the input is base64-encoded, you can specify this to decode before decryption. 
-The decrypted plaintext will be written to the specified output path or to standard output if no path is provided.
+	Long: `Decrypt a secret encrypted with AES-256-GCM.
+
+This command decrypts a secret from an encrypted file or standard input using the AES-256-GCM algorithm. 
+You must specify both the encrypted input source and the destination for the decrypted output. By default, 
+the decryption key is loaded from a .secret-hub.yaml configuration file in the $HOME directory. If this 
+file is unavailable, you must provide a separate key file containing a valid 32-byte encryption key.
+
+If the encrypted input is base64-encoded, enable decoding before decryption. The result will be written to 
+the specified output file.
 
 Usage:
-  decrypt --key <keyfile> --input <ciphertext> [--output <plaintext>] [--base64]
+  decrypt --input <ciphertext> --output <plaintext> [--key <keyfile>] [--base64]
   
-Example:
+Examples:
   secret-hub decrypt --in secret.enc --out secret-dec.txt --key mykey.bin
+  secret-hub decrypt --in secret.enc --out secret-dec.txt
+  secret-hub decrypt --in secret.enc --out secret-dec.txt --key mykey.bin --base64
   `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("decrypt")
