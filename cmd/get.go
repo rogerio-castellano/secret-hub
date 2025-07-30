@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
@@ -55,8 +56,13 @@ func init() {
 	getCmd.Flags().StringVarP(&getSecretName, "name", "n", "", "Name of the secret (required)")
 	getCmd.Flags().StringP("key", "k", "", "Decryption key path (required unless specified in config).")
 	getCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
-	viper.BindPFlag("get.key", getCmd.Flags().Lookup("key"))
-	viper.BindPFlag("get.storage", getCmd.Flags().Lookup("storage"))
-
-	getCmd.MarkFlagRequired("name")
+	if err := viper.BindPFlag("get.key", getCmd.Flags().Lookup("key")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
+	if err := viper.BindPFlag("get.storage", getCmd.Flags().Lookup("storage")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
+	if err := getCmd.MarkFlagRequired("name"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 }

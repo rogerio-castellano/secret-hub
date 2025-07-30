@@ -72,9 +72,15 @@ func init() {
 	encryptCmd.Flags().StringVarP(&inputPath, "in", "i", "", "Input file to encrypt (required)")
 	encryptCmd.Flags().StringVarP(&outputPath, "out", "o", "", "Output file for encrypted data (required)")
 	encryptCmd.Flags().StringP("key", "k", "", "Encryption key path (required unless specified in config).")
-	viper.BindPFlag("encrypt.key", encryptCmd.Flags().Lookup("key"))
+	if err := viper.BindPFlag("encrypt.key", encryptCmd.Flags().Lookup("key")); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 	encryptCmd.Flags().BoolVar(&base64Output, "base64", false, "Output as base64 instead of raw bytes")
 
-	encryptCmd.MarkFlagRequired("input")
-	encryptCmd.MarkFlagRequired("output")
+	if err := encryptCmd.MarkFlagRequired("input"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
+	if err := encryptCmd.MarkFlagRequired("output"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 }

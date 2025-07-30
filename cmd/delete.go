@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
@@ -38,7 +39,11 @@ func init() {
 
 	deleteCmd.Flags().StringVarP(&deleteName, "name", "n", "", "Name of the secret to delete")
 	deleteCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
-	viper.BindPFlag("delete.storage", deleteCmd.Flags().Lookup("storage"))
+	if err := viper.BindPFlag("delete.storage", deleteCmd.Flags().Lookup("storage")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 
-	deleteCmd.MarkFlagRequired("name")
+	if err := deleteCmd.MarkFlagRequired("name"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 }

@@ -72,10 +72,17 @@ func init() {
 	decryptCmd.Flags().StringVarP(&decInputPath, "in", "i", "", "Encrypted input file (required)")
 	decryptCmd.Flags().StringVarP(&decOutputPath, "out", "o", "", "Decrypted output file (required)")
 	decryptCmd.Flags().StringP("key", "k", "", "Decryption key path (required unless specified in config).")
-	viper.BindPFlag("decrypt.key", decryptCmd.Flags().Lookup("key"))
+
+	if err := viper.BindPFlag("decrypt.key", decryptCmd.Flags().Lookup("key")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 
 	decryptCmd.Flags().BoolVar(&base64Input, "base64", false, "Input is base64 encoded")
 
-	decryptCmd.MarkFlagRequired("in")
-	decryptCmd.MarkFlagRequired("out")
+	if err := decryptCmd.MarkFlagRequired("in"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
+	if err := decryptCmd.MarkFlagRequired("out"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 }

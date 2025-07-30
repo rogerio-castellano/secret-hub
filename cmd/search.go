@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
@@ -55,7 +56,11 @@ func init() {
 
 	searchCmd.Flags().StringVarP(&searchQuery, "query", "q", "", "Substring to search for (case-insensitive)")
 	searchCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
-	viper.BindPFlag("search.storage", searchCmd.Flags().Lookup("storage"))
+	if err := viper.BindPFlag("search.storage", searchCmd.Flags().Lookup("storage")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 
-	searchCmd.MarkFlagRequired("query")
+	if err := searchCmd.MarkFlagRequired("query"); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
 	"github.com/spf13/cobra"
@@ -42,5 +43,7 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
-	viper.BindPFlag("list.storage", listCmd.Flags().Lookup("storage"))
+	if err := viper.BindPFlag("list.storage", listCmd.Flags().Lookup("storage")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 }

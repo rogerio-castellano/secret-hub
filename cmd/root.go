@@ -37,7 +37,9 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.secret-hub.yaml)")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
-	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	if err := viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 
 	viper.SetDefault("storage", "secrets.json")
 }

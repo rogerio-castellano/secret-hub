@@ -62,9 +62,17 @@ func init() {
 	storeCmd.Flags().StringVarP(&storeKey, "key", "k", "", "Encryption key path (required unless specified in config).")
 	storeCmd.Flags().StringVarP(&storePath, "storage", "s", "", "Path to the storage file (default to secrets.json)")
 	storeCmd.Flags().BoolVarP(&forceStore, "force", "f", false, "Force overwrite existing secret")
-	viper.BindPFlag("store.key", storeCmd.Flags().Lookup("key"))
-	viper.BindPFlag("store.storage", storeCmd.Flags().Lookup("storage"))
+	if err := viper.BindPFlag("store.key", storeCmd.Flags().Lookup("key")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
+	if err := viper.BindPFlag("store.storage", storeCmd.Flags().Lookup("storage")); err != nil {
+		log.Fatalf("Failed to bind config key: %v", err)
+	}
 
-	storeCmd.MarkFlagRequired("name")
-	storeCmd.MarkFlagRequired("value")
+	if err := storeCmd.MarkFlagRequired("name"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
+	if err := storeCmd.MarkFlagRequired("value"); err != nil {
+		log.Fatalf("Failed to mark flag required: %v", err)
+	}
 }
