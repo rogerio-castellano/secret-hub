@@ -34,9 +34,9 @@ Usage:
   store --name <secret_name> --value <secret_value> [--key <keyfile>] [--storage <filepath>] [--force]
 
 Example:
-  secret-hub store --key mykey.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" 
+  secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" 
   secret-hub store --name db_password --value "p@ssw0rd"
-  secret-hub store --key mykey.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" --force
+  secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" --force
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storeKey = getKey("store")

@@ -33,9 +33,9 @@ Usage:
   encrypt --input <plaintext> --output <ciphertext> [--key <keyfile>] [--base64]
 
 Examples:
-  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin
+  secret-hub encrypt --in secret.txt --out secret.enc --key key.bin
   secret-hub encrypt --in secret.txt --out secret.enc
-  secret-hub encrypt --in secret.txt --out secret.enc --key mykey.bin --base64
+  secret-hub encrypt --in secret.txt --out secret.enc --key key.bin --base64
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("encrypt")

@@ -28,7 +28,7 @@ Usage
 	get --name <secret_name> [--key <keyfile>] [--storage <filepath>]
 
 Example:
-  secret-hub get --name db_password --key mykey.bin --storage secret-store.json
+  secret-hub get --name db_password --key key.bin --storage secret-store.json
   secret-hub get --name db_password
 `,
 
@@ -68,6 +68,7 @@ func init() {
 	if err := viper.BindPFlag("get.storage", getCmd.Flags().Lookup("storage")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
 	}
+
 	if err := getCmd.MarkFlagRequired("name"); err != nil {
 		log.Fatalf("Failed to mark flag required: %v", err)
 	}
