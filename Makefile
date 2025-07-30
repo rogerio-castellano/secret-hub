@@ -86,6 +86,15 @@ encrypt-demo: build
 	@echo "📄 Decrypted content:"
 	cat $(PLAIN_FILE)
 
+.PHONY: docker-build
+docker-build:
+	docker build -t secret-hub .
+
+.PHONY: docker-run
+docker-run:
+	docker run --rm -v "$(CURDIR):/output" secret-hub $(ARGS)
+
+
 .PHONY: sync
 sync:
 	git pull
