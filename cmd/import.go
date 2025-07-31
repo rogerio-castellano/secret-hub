@@ -24,6 +24,7 @@ var (
 	importPrefix       string
 	importRenameMap    map[string]string
 	importRenameList   []string
+	importExclude      []string
 )
 
 var importCmd = &cobra.Command{
@@ -33,16 +34,16 @@ var importCmd = &cobra.Command{
 
 Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. Use --force to overwrite existing secrets intentionally, or --skip-existing to avoid modifying secrets that are already present.
 
-To simulate the process without saving anything, use the --dry-run flag. This previews the secrets that would be imported, providing a safe way to validate input files before making changes.
+To simulate the process without saving anything, use the --dry-run flag. This previews the secrets that would be imported, helping validate and audit input files before committing changes.
 
-For more targeted control, --only lets you specify a subset of keys to import, and --prefix helps organize secrets by prepending an environment or system tag (e.g. dev_, prod_). The --rename flag gives you fine-grained control over key names by remapping individual keys using the old=new format. Multiple remappings can be applied by repeating the flag.
+For targeted control, use --only to limit imports to specific keys, or --exclude to skip individual keys that should not be imported—even if they’re present in the source file. Combine this with --prefix to prepend an environment or system namespace to each secret, such as dev_, prod_, or staging_. For fine-grained remapping, the --rename flag allows custom key renaming via the format old=new, supporting multiple entries for tailored imports.
 
-The import process supports flexible file formats and robust error handling for parsing, encryption, and storage operations.
+The import process supports flexible file formats and includes robust error handling across parsing, encryption, and storage. Ideal for managing environment configs, migrating legacy secrets, and maintaining clarity across shared or multi-system setups.
 
 Usage:
   secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
-                  [--storage <filepath>] [--force] [--skip-existing] [--dry-run] [--only <keys>]
-
+                  [--storage <filepath>] [--force] [--skip-existing] [--dry-run] [--only <keys>] [--rename <keys>]
+				  [--exclude <keys>]
 Examples:
 # Import from a .env file into custom storage
   secret-hub import --file secrets.env --format env --key test-key.bin --storage imported-secrets.json 
@@ -77,6 +78,8 @@ Examples:
 # Import the TOKEN secret as prod_ACCESS_TOKEN in storage, utilizing the combined effect of --prefix and --rename.
   secret-hub import app.env --prefix prod_ --rename TOKEN=ACCESS_TOKEN
 
+# Dry run prefixing each key with dev_ (e.g., dev_API_KEY), renaming DATABASE_URL to db_url, and excluding DEBUG_MODE and LOCAL_SECRET—even if they’re in the file.
+  secret-hub import --file=secrets.env --format env --prefix dev_ --rename DATABASE_URL=db_url --exclude DEBUG_MODE,LOCAL_SECRET --dry-run --file=secrets.env
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("import")
@@ -121,6 +124,20 @@ Examples:
 				}
 			}
 			data = filtered
+		}
+
+		// Exclude keys if --exclude is set
+		if len(importExclude) > 0 {
+			excludeMap := make(map[string]bool)
+			for _, name := range importExclude {
+				excludeMap[name] = true
+			}
+			for name := range data {
+				if excludeMap[name] {
+					delete(data, name)
+					fmt.Printf("⛔ Excluding key '%s' as per --exclude\n", name)
+				}
+			}
 		}
 
 		key, err := crypto.LoadKeyFromFile(keyPath)
@@ -201,6 +218,7 @@ func init() {
 	importCmd.Flags().StringSliceVar(&importOnlyNames, "only", nil, "Comma-separated list of secret names to import")
 	importCmd.Flags().StringVar(&importPrefix, "prefix", "", "Optional prefix to apply to all secret names")
 	importCmd.Flags().StringSliceVar(&importRenameList, "rename", nil, "Rename secret keys: use --rename old=new")
+	importCmd.Flags().StringSliceVar(&importExclude, "exclude", nil, "List of keys to exclude from import")
 
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
