@@ -22,6 +22,8 @@ var (
 	importSkipExisting bool
 	importOnlyNames    []string
 	importPrefix       string
+	importRenameMap    map[string]string
+	importRenameList   []string
 )
 
 var importCmd = &cobra.Command{
@@ -29,11 +31,13 @@ var importCmd = &cobra.Command{
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
 	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To avoid unintentional overwrites, use --skip-existing to ignore any secrets already present, or opt for --force when deliberate replacement is needed.
+Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. Use --force to overwrite existing secrets intentionally, or --skip-existing to avoid modifying secrets that are already present.
 
-To preview secret names and values without saving them, use --dry-run. This mode helps validate input data before committing changes. If you're working with shared or multi-environment configuration files, the --only flag lets you selectively import specific secrets from the input. In addition, the --prefix flag allows you to prepend a namespace to each secret key (e.g. dev_, prod_), making it easier to organize secrets per environment or system within a unified store.
+To simulate the process without saving anything, use the --dry-run flag. This previews the secrets that would be imported, providing a safe way to validate input files before making changes.
 
-The import process supports flexible file formats and provides robust error handling across parsing, encryption, and storage steps. Ideal for migrating legacy secrets, auditing shared configurations, and bootstrapping secure environments.
+For more targeted control, --only lets you specify a subset of keys to import, and --prefix helps organize secrets by prepending an environment or system tag (e.g. dev_, prod_). The --rename flag gives you fine-grained control over key names by remapping individual keys using the old=new format. Multiple remappings can be applied by repeating the flag.
+
+The import process supports flexible file formats and robust error handling for parsing, encryption, and storage operations.
 
 Usage:
   secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
@@ -64,7 +68,14 @@ Examples:
 # Dry run with preview of prefixed output. Preview what will be saved as test_-prefixed keys, allowing validation before committing.
   secret-hub import --file ./secrets.yaml --key masterKey123 --prefix test_ --dry-run
 
+# Import the secrets from secrets.env, renaming DB_PASS to DATABASE_PASSWORD and API_KEY to SERVICE_API_KEY.
+  secret-hub import secrets.env --rename DB_PASS=DATABASE_PASSWORD --rename API_KEY=SERVICE_API_KEY
 
+# Import only DB_USER and DB_PASS, and their keys are renamed to USERNAME and PASSWORD
+  secret-hub import config.yaml --only DB_USER DB_PASS --rename DB_USER=USERNAME --rename DB_PASS=PASSWORD
+
+# Import the TOKEN secret as prod_ACCESS_TOKEN in storage, utilizing the combined effect of --prefix and --rename.
+  secret-hub import app.env --prefix prod_ --rename TOKEN=ACCESS_TOKEN
 
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -120,7 +131,20 @@ Examples:
 		store := storage.NewFileStore(storagePath)
 		imported := 0
 
+		importRenameMap = make(map[string]string)
+		for _, entry := range importRenameList {
+			parts := strings.SplitN(entry, "=", 2)
+			if len(parts) != 2 {
+				return fmt.Errorf("invalid --rename value: %s (expected old=new)", entry)
+			}
+			importRenameMap[parts[0]] = parts[1]
+		}
+
 		for origName, value := range data {
+			// Rename key if requested
+			if renamed, ok := importRenameMap[origName]; ok {
+				origName = renamed
+			}
 			name := importPrefix + origName
 
 			// Check existence
@@ -176,6 +200,7 @@ func init() {
 	importCmd.Flags().BoolVar(&importSkipExisting, "skip-existing", false, "Skip importing secrets that already exist")
 	importCmd.Flags().StringSliceVar(&importOnlyNames, "only", nil, "Comma-separated list of secret names to import")
 	importCmd.Flags().StringVar(&importPrefix, "prefix", "", "Optional prefix to apply to all secret names")
+	importCmd.Flags().StringSliceVar(&importRenameList, "rename", nil, "Rename secret keys: use --rename old=new")
 
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
