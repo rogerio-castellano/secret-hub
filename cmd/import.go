@@ -21,6 +21,7 @@ var (
 	importDryRun       bool
 	importSkipExisting bool
 	importOnlyNames    []string
+	importPrefix       string
 )
 
 var importCmd = &cobra.Command{
@@ -28,13 +29,11 @@ var importCmd = &cobra.Command{
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
 	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets, use the --skip-existing flag—even without --force, this ensures only new secrets are imported. If overwriting is intended, --force makes that explicit.
+Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To avoid unintentional overwrites, use --skip-existing to ignore any secrets already present, or opt for --force when deliberate replacement is needed.
 
-To preview secret names and values without encrypting or saving them, use the --dry-run flag. This mode simulates the import process, providing visibility into the parsed data and helping validate input before committing changes.
+To preview secret names and values without saving them, use --dry-run. This mode helps validate input data before committing changes. If you're working with shared or multi-environment configuration files, the --only flag lets you selectively import specific secrets from the input. In addition, the --prefix flag allows you to prepend a namespace to each secret key (e.g. dev_, prod_), making it easier to organize secrets per environment or system within a unified store.
 
-For targeted imports, the --only flag allows you to selectively process specific secrets from a larger file—useful when reusing files across environments or importing just a subset of values. You can pass a comma-separated list of keys to limit the operation to just those entries.
-
-The import process supports flexible file formats and includes robust error handling for parsing, encryption, and storage operations. Ideal for teams migrating legacy secrets, auditing secret inventories, or initializing secure development environments.
+The import process supports flexible file formats and provides robust error handling across parsing, encryption, and storage steps. Ideal for migrating legacy secrets, auditing shared configurations, and bootstrapping secure environments.
 
 Usage:
   secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
@@ -53,8 +52,20 @@ Examples:
 # Dry-run preview without encrypting or saving
   secret-hub import --file secrets.json --format json --key test-key.bin --dry-run
 
-# import only specific secrets (e.g., API_KEY and DB_PASSWORD):
+# Import only specific secrets (e.g., API_KEY and DB_PASSWORD)
   secret-hub import config.env --key superkey123 --only API_KEY,DB_PASSWORD  
+
+# Import prepending dev_ to each key (e.g. DB_PASS becomes dev_DB_PASS)
+  secret-hub import --file ./config.env --key masterKey123 --prefix dev_
+
+# Import selectively  with prefixing; only DB_PASS and API_KEY will be imported, with keys remapped to prod_DB_PASS and prod_API_KEY.
+  secret-hub import --file ./config.env --key masterKey123 --only DB_PASS,API_KEY --prefix prod_
+
+# Dry run with preview of prefixed output. Preview what will be saved as test_-prefixed keys, allowing validation before committing.
+  secret-hub import --file ./secrets.yaml --key masterKey123 --prefix test_ --dry-run
+
+
+
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("import")
@@ -109,7 +120,9 @@ Examples:
 		store := storage.NewFileStore(storagePath)
 		imported := 0
 
-		for name, value := range data {
+		for origName, value := range data {
+			name := importPrefix + origName
+
 			// Check existence
 			if importSkipExisting && !importForce {
 				existing, _ := store.Get(name)
@@ -162,6 +175,7 @@ func init() {
 	importCmd.Flags().BoolVar(&importDryRun, "dry-run", false, "Show what would be imported without writing")
 	importCmd.Flags().BoolVar(&importSkipExisting, "skip-existing", false, "Skip importing secrets that already exist")
 	importCmd.Flags().StringSliceVar(&importOnlyNames, "only", nil, "Comma-separated list of secret names to import")
+	importCmd.Flags().StringVar(&importPrefix, "prefix", "", "Optional prefix to apply to all secret names")
 
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
