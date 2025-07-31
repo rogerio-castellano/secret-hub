@@ -18,19 +18,22 @@ var (
 	importFilePath string
 	importFormat   string
 	importForce    bool
+	importDryRun   bool
 )
 
 var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
-	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps you onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
+	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps teams onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. You can also specify the destination file for the encrypted secrets using --storage, or allow the tool to fallback to the default configured backend. Existing secrets can be forcibly overwritten using the --force flag.
+Each value in the input file is encrypted using the key specified via the --key flag. The destination for encrypted secrets can be set using --storage, or the tool will fall back to the default configured backend. Existing secrets may be forcibly overwritten using the --force flag.
 
-The import process supports flexible file formats and provides error handling for parsing, encryption, and storage operations. Ideal for teams migrating legacy secrets or initializing fresh environments with sensitive configs.
+To preview parsed secret values without committing any changes, use --dry-run. This mode simulates the import process, displaying recognized secret names and formats while skipping encryption and disk storage—ideal for validating input files, catching typos, and auditing configurations.
+
+The import process supports flexible file formats and robust error handling across parsing, encryption, and storage operations. Perfect for migrating legacy secrets, auditing configs, or initializing new environments with sensitive values.
 
 Usage:
-  secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> [--storage <filepath>] [--force]
+  secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> [--storage <filepath>] [--force] [--dry-run]
 
 Examples:
   secret-hub import --file secrets.env --format env --key test-key.bin --storage imported-secrets.json 
@@ -78,18 +81,31 @@ Examples:
 		imported := 0
 
 		for name, value := range data {
+			if importDryRun {
+				fmt.Printf("🔍 [dry-run] Would import: %s = %s\n", name, value)
+				continue
+			}
+
 			enc, err := crypto.Encrypt(key, []byte(value))
 			if err != nil {
 				return fmt.Errorf("failed to encrypt secret '%s': %w", name, err)
 			}
+
 			s := storage.EncryptedSecret{
 				Name: name,
 				Data: enc,
 			}
+
 			if err := store.Save(s, importForce); err != nil {
 				return fmt.Errorf("failed to store '%s': %w", name, err)
 			}
+
 			imported++
+		}
+
+		if importDryRun {
+			log.Printf("✅ Dry run complete. %d secrets would be imported from %s", len(data), importFilePath)
+			return nil
 		}
 
 		log.Printf("✅ Imported %d secrets from %s", imported, importFilePath)
@@ -105,6 +121,8 @@ func init() {
 	importCmd.Flags().StringP("key", "k", "", "Path to encryption key file (required)")
 	importCmd.Flags().StringP("storage", "s", "", "Path to secret store file")
 	importCmd.Flags().BoolVar(&importForce, "force", false, "Overwrite existing secrets")
+	importCmd.Flags().BoolVar(&importDryRun, "dry-run", false, "Show what would be imported without writing")
+
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
 	}
