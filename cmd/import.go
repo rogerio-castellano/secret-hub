@@ -82,6 +82,10 @@ Examples:
   secret-hub import --file=secrets.env --format env --prefix dev_ --rename DATABASE_URL=db_url --exclude DEBUG_MODE,LOCAL_SECRET --dry-run --file=secrets.env
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		var (
+			imported, skipped, excluded, renamed int
+		)
+
 		keyPath := getKey("import")
 		storagePath := getStorage("import")
 
@@ -135,6 +139,7 @@ Examples:
 			for name := range data {
 				if excludeMap[name] {
 					delete(data, name)
+					excluded++
 					fmt.Printf("⛔ Excluding key '%s' as per --exclude\n", name)
 				}
 			}
@@ -146,7 +151,7 @@ Examples:
 		}
 
 		store := storage.NewFileStore(storagePath)
-		imported := 0
+		imported = 0
 
 		importRenameMap = make(map[string]string)
 		for _, entry := range importRenameList {
@@ -159,8 +164,9 @@ Examples:
 
 		for origName, value := range data {
 			// Rename key if requested
-			if renamed, ok := importRenameMap[origName]; ok {
-				origName = renamed
+			if newName, ok := importRenameMap[origName]; ok {
+				origName = newName
+				renamed++
 			}
 			name := importPrefix + origName
 
@@ -169,6 +175,7 @@ Examples:
 				existing, _ := store.Get(name)
 				if existing != nil {
 					fmt.Printf("⚠️  Skipping existing secret: %s\n", name)
+					skipped++
 					continue
 				}
 			}
@@ -196,11 +203,18 @@ Examples:
 		}
 
 		if importDryRun {
-			log.Printf("✅ Dry run complete. %d secrets would be imported from %s", len(data), importFilePath)
-			return nil
+			log.Printf("✅ Dry run complete. %d secrets would be imported from %s", len(data)-skipped-excluded, importFilePath)
+		} else {
+			log.Printf("✅ Import complete from %s", importFilePath)
 		}
 
-		log.Printf("✅ Imported %d secrets from %s", imported, importFilePath)
+		fmt.Println("\n📊 Import Summary")
+		fmt.Println("-----------------")
+		fmt.Printf("🔐 Imported     : %d\n", imported)
+		fmt.Printf("⚠️  Skipped      : %d\n", skipped)
+		fmt.Printf("⛔ Excluded     : %d\n", excluded)
+		fmt.Printf("✏️  Renamed      : %d\n", renamed)
+		fmt.Println()
 		return nil
 	},
 }
