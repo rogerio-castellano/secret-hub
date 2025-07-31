@@ -15,30 +15,40 @@ import (
 )
 
 var (
-	importFilePath string
-	importFormat   string
-	importForce    bool
-	importDryRun   bool
+	importFilePath     string
+	importFormat       string
+	importForce        bool
+	importDryRun       bool
+	importSkipExisting bool
 )
 
 var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
-	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps teams onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
+	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. The destination for encrypted secrets can be set using --storage, or the tool will fall back to the default configured backend. Existing secrets may be forcibly overwritten using the --force flag.
+Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets, use the --skip-existing flag—even without --force, this ensures only new secrets are imported. Alternatively, you can forcibly overwrite with the --force flag when appropriate.
 
-To preview parsed secret values without committing any changes, use --dry-run. This mode simulates the import process, displaying recognized secret names and formats while skipping encryption and disk storage—ideal for validating input files, catching typos, and auditing configurations.
+To preview secret names and values without encrypting or saving them, use the --dry-run flag. This mode simulates the import process, providing visibility into the parsed data and helping validate input before committing changes.
 
-The import process supports flexible file formats and robust error handling across parsing, encryption, and storage operations. Perfect for migrating legacy secrets, auditing configs, or initializing new environments with sensitive values.
+The import process supports flexible file formats and includes robust error handling for parsing, encryption, and storage operations.
 
 Usage:
-  secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> [--storage <filepath>] [--force] [--dry-run]
+  secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
+                  [--storage <filepath>] [--force] [--skip-existing] [--dry-run]
 
 Examples:
+# Import from a .env file into custom storage
   secret-hub import --file secrets.env --format env --key test-key.bin --storage imported-secrets.json 
+
+# Import from JSON and overwrite existing secrets
   secret-hub import --file secrets.json --format json --key test-key.bin --force
-  secret-hub import --file secrets.yaml --format yaml
+
+# Import from YAML and skip secrets that already exist
+  secret-hub import --file secrets.yaml --format yaml --skip-existing
+
+# Dry-run preview without encrypting or saving
+  secret-hub import --file secrets.json --format json --key test-key.bin --dry-run
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("import")
@@ -81,6 +91,15 @@ Examples:
 		imported := 0
 
 		for name, value := range data {
+			// Check existence
+			if importSkipExisting && !importForce {
+				existing, _ := store.Get(name)
+				if existing != nil {
+					fmt.Printf("⚠️  Skipping existing secret: %s\n", name)
+					continue
+				}
+			}
+
 			if importDryRun {
 				fmt.Printf("🔍 [dry-run] Would import: %s = %s\n", name, value)
 				continue
@@ -122,6 +141,7 @@ func init() {
 	importCmd.Flags().StringP("storage", "s", "", "Path to secret store file")
 	importCmd.Flags().BoolVar(&importForce, "force", false, "Overwrite existing secrets")
 	importCmd.Flags().BoolVar(&importDryRun, "dry-run", false, "Show what would be imported without writing")
+	importCmd.Flags().BoolVar(&importSkipExisting, "skip-existing", false, "Skip importing secrets that already exist")
 
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
