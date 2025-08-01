@@ -20,7 +20,7 @@ var listCmd = &cobra.Command{
 	Short: "List all stored secret names",
 	Long: `Use the secret-hub list command to enumerate all secrets stored in your configured secret store, without revealing any sensitive values. This is useful for verifying presence, auditing key names, or inspecting store structure.
 
-By default, the command reads from the secret store path specified via a flag or sourced from the .secret-hub.yaml configuration file in $HOME. It displays each stored secret's name clearly, even when storage is nested or namespaced.
+By default, the command reads from the secret store path specified via a flag or sourced from the .secret-hub.yaml configuration file in $HOME. It displays each stored secret’s name clearly, even when storage is nested or namespaced.
 
 To tailor output for automation or readability, you can use:
 
@@ -28,6 +28,8 @@ To tailor output for automation or readability, you can use:
 --pretty for human-friendly formatted listing
 
 These options list all stored secret names without exposing their contents. If no secrets are currently saved, a friendly message is printed to inform the user.
+
+Note: --json and --pretty are mutually exclusive. You must choose one format at a time—attempting to use both simultaneously will result in a validation error.
 
 The list command makes it easy to review what secrets exist, integrate visibility into build pipelines, or validate import results across your team's secure configuration workflows.
 
@@ -40,6 +42,10 @@ Example:
   `,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if listOutputJSON && listOutputPretty {
+			return fmt.Errorf("flags --json and --pretty are mutually exclusive; please choose only one")
+		}
+
 		storagePath := getStorage("list")
 		store := storage.NewFileStore(storagePath)
 
