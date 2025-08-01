@@ -26,15 +26,16 @@ var exportCmd = &cobra.Command{
 	Short: "Export decrypted secrets in .env, JSON, or YAML format",
 	Long: `Export all stored secrets in decrypted form using a selected output format.
 
-Supports .env, JSON, and YAML formats to accommodate different integration needs. This functionality is ideal for injecting secrets into local development environments, generating configuration files, or migrating into other secret management systems.
+Supports .env, JSON, and YAML formats to accommodate different integration needs—useful for injecting secrets into development environments, generating config files, or migrating secrets into other management systems.
 
-The new --output <filename> flag lets you export secrets directly to a file instead of printing to stdout, streamlining workflows for scripting, CI/CD pipelines, and automated provisioning. For example, you can output secrets to .env.generated, secrets.json, or any other location required by downstream tools.
+If --format is omitted, the tool will intelligently infer the desired output format from the --output file's extension (e.g. .json, .yaml, .env). This streamlines automation and scripting by reducing boilerplate setup.
 
 Additional flags:
 
---summary Outputs a brief, non-sensitive overview of exported secrets.
---quiet Silences all non-essential output for silent automation.
---output Saves the exported secrets to a file for easy reuse or integration.
+--output <filename> Saves exported secrets to a file instead of printing to stdout. Ideal for CI pipelines and provisioning tasks.
+--summary Outputs a brief, non-sensitive overview of what was exported.
+--quiet Suppresses all non-essential output for silent scripting workflows.
+--format <format> Explicitly defines the format if auto-detection isn't desired.
 
 Usage:
   export --format <env|json|yaml> [--key <keyfile>] [--storage <filepath>] [--summary <json|text>] [--quiet]
@@ -75,6 +76,20 @@ Examples:
 			output[name] = string(plain)
 		}
 		count := len(output)
+
+		// Auto-detect export format from output file extension
+		if exportFormat == "" && exportOutputPath != "" {
+			switch {
+			case strings.HasSuffix(exportOutputPath, ".env"):
+				exportFormat = "env"
+			case strings.HasSuffix(exportOutputPath, ".json"):
+				exportFormat = "json"
+			case strings.HasSuffix(exportOutputPath, ".yml"), strings.HasSuffix(exportOutputPath, ".yaml"):
+				exportFormat = "yaml"
+			default:
+				return fmt.Errorf("cannot auto-detect format from output file extension. Use --format explicitly")
+			}
+		}
 
 		var out []byte
 		switch exportFormat {
@@ -148,7 +163,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(exportCmd)
 
-	exportCmd.Flags().StringVarP(&exportFormat, "format", "f", "env", "Export format: env, json, yaml")
+	exportCmd.Flags().StringVar(&exportFormat, "format", "", "Export format: env, json, yaml (optional if --output is set)")
 	exportCmd.Flags().StringP("key", "k", "", "Path to decryption key file")
 	exportCmd.Flags().StringP("storage", "s", "", "Path to secret storage file")
 	exportCmd.Flags().StringVar(&exportSummaryFormat, "summary", "text", "Summary output format: text or json")
