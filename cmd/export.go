@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/rogerio-castellano/secret-hub/internal/crypto"
 	"github.com/rogerio-castellano/secret-hub/internal/storage"
@@ -17,6 +18,7 @@ var (
 	exportFormat        string
 	exportSummaryFormat string
 	exportQuiet         bool
+	exportOutputPath    string
 )
 
 var exportCmd = &cobra.Command{
@@ -24,21 +26,26 @@ var exportCmd = &cobra.Command{
 	Short: "Export decrypted secrets in .env, JSON, or YAML format",
 	Long: `Export all stored secrets in decrypted form using a selected output format.
 
-Supports .env, JSON, and YAML formats to accommodate different integration needs.
-This is useful for injecting secrets into local development environments,
-generating configuration files, or importing into other secret management systems.
+Supports .env, JSON, and YAML formats to accommodate different integration needs. This functionality is ideal for injecting secrets into local development environments, generating configuration files, or migrating into other secret management systems.
+
+The new --output <filename> flag lets you export secrets directly to a file instead of printing to stdout, streamlining workflows for scripting, CI/CD pipelines, and automated provisioning. For example, you can output secrets to .env.generated, secrets.json, or any other location required by downstream tools.
 
 Additional flags:
---summary  Provides a concise overview of exported secrets without showing values.
---quiet    Suppresses all non-essential output for seamless scripting and automation.
+
+--summary Outputs a brief, non-sensitive overview of exported secrets.
+--quiet Silences all non-essential output for silent automation.
+--output Saves the exported secrets to a file for easy reuse or integration.
 
 Usage:
   export --format <env|json|yaml> [--key <keyfile>] [--storage <filepath>] [--summary <json|text>] [--quiet]
+  [--output <filename>]
 
 Examples:
   secret-hub export --format env --key key.bin
   secret-hub export --format json --key key.bin > exported-secrets.json
   secret-hub export --format yaml --key key.bin --storage secret-store.json
+  secret-hub export --format json --output .env
+  secret-hub export --format env --summary --output .env.generated
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("export")
@@ -69,25 +76,40 @@ Examples:
 		}
 		count := len(output)
 
+		var out []byte
 		switch exportFormat {
 		case "env":
+			var sb strings.Builder
 			for k, v := range output {
-				fmt.Printf("%s=%s\n", k, v)
+				sb.WriteString(fmt.Sprintf("%s=%s\n", k, v))
 			}
+			out = []byte(sb.String())
 		case "json":
-			out, err := json.MarshalIndent(output, "", "  ")
+			var err error
+			out, err = json.MarshalIndent(output, "", "  ")
 			if err != nil {
 				return fmt.Errorf("failed to marshal JSON: %w", err)
 			}
-			os.Stdout.Write(out)
 		case "yaml":
-			out, err := yaml.Marshal(output)
+			var err error
+			out, err = yaml.Marshal(output)
 			if err != nil {
 				return fmt.Errorf("failed to marshal YAML: %w", err)
 			}
-			os.Stdout.Write(out)
 		default:
 			return fmt.Errorf("unsupported format: %s (use env, json, yaml)", exportFormat)
+		}
+
+		if exportOutputPath != "" {
+			err := os.WriteFile(exportOutputPath, out, 0644)
+			if err != nil {
+				return fmt.Errorf("failed to write output file: %w", err)
+			}
+			if !exportQuiet {
+				fmt.Printf("💾 Secrets written to: %s\n", exportOutputPath)
+			}
+		} else {
+			os.Stdout.Write(out)
 		}
 
 		if exportQuiet {
@@ -131,6 +153,7 @@ func init() {
 	exportCmd.Flags().StringP("storage", "s", "", "Path to secret storage file")
 	exportCmd.Flags().StringVar(&exportSummaryFormat, "summary", "text", "Summary output format: text or json")
 	exportCmd.Flags().BoolVar(&exportQuiet, "quiet", false, "Suppress export summary output")
+	exportCmd.Flags().StringVar(&exportOutputPath, "output", "", "Write exported secrets to file instead of stdout")
 
 	if err := viper.BindPFlag("export.key", exportCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
