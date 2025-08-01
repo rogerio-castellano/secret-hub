@@ -34,13 +34,15 @@ var importCmd = &cobra.Command{
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
 	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets unintentionally, use --skip-existing. For intentional replacements, use --force.
+Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets unintentionally, use --skip-existing; for intentional replacements, use --force.
 
-Control over the import scope is provided through the --only flag to include specific secrets and --exclude to skip ones you don't want imported. You can organize secrets using --prefix, remap individual key names using --rename, and preview the import behavior without saving anything via the --dry-run flag.
+Control over the import scope is provided through the --only flag to include specific secrets and --exclude to skip ones you don’t want imported. You can organize secrets using --prefix, remap individual key names using --rename, and preview the import behavior without saving anything via the --dry-run flag.
+
+If --format is not explicitly set, the tool will auto-detect the format from the file extension provided via --file—reducing manual configuration and smoothing CI/CD workflows. Supported extensions include .env, .json, and .yaml.
 
 After import completes, a summary of the operation is shown by default—listing how many secrets were imported, skipped, excluded, renamed, or failed. This can be printed in machine-readable format using --summary=json, or silenced entirely with --quiet for minimal output.
 
-The import command supports flexible formats and provides robust error handling for parsing, encryption, and storage—making it ideal for managing environment configs, migrating shared secret sets, and maintaining clarity across secure systems.
+The import command supports flexible formats and provides robust error handling across parsing, encryption, and storage—making it ideal for managing environment configs, migrating shared secret sets, and maintaining clarity across secure systems.
 
 Usage:
   secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
@@ -95,6 +97,20 @@ Examples:
 		keyPath := getKey("import")
 		storagePath := getStorage("import")
 
+		// Auto-detect format from file extension if --format not set
+		if importFormat == "" {
+			switch {
+			case strings.HasSuffix(importFilePath, ".env"):
+				importFormat = "env"
+			case strings.HasSuffix(importFilePath, ".json"):
+				importFormat = "json"
+			case strings.HasSuffix(importFilePath, ".yaml"), strings.HasSuffix(importFilePath, ".yml"):
+				importFormat = "yaml"
+			default:
+				return fmt.Errorf("cannot auto-detect input format from file extension. Please use --format")
+			}
+		}
+
 		content, err := os.ReadFile(importFilePath)
 		if err != nil {
 			return fmt.Errorf("failed to read file: %w", err)
@@ -102,6 +118,7 @@ Examples:
 
 		var data map[string]string
 
+		importFormat = strings.ToLower(importFormat)
 		switch importFormat {
 		case "env":
 			data = parseEnv(string(content))
@@ -280,9 +297,6 @@ func init() {
 	}
 
 	if err := importCmd.MarkFlagRequired("file"); err != nil {
-		log.Fatalf("Failed to mark flag required: %v", err)
-	}
-	if err := importCmd.MarkFlagRequired("format"); err != nil {
 		log.Fatalf("Failed to mark flag required: %v", err)
 	}
 }
