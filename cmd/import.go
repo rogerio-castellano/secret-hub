@@ -15,16 +15,18 @@ import (
 )
 
 var (
-	importFilePath     string
-	importFormat       string
-	importForce        bool
-	importDryRun       bool
-	importSkipExisting bool
-	importOnlyNames    []string
-	importPrefix       string
-	importRenameMap    map[string]string
-	importRenameList   []string
-	importExclude      []string
+	importFilePath      string
+	importFormat        string
+	importForce         bool
+	importDryRun        bool
+	importSkipExisting  bool
+	importOnlyNames     []string
+	importPrefix        string
+	importRenameMap     map[string]string
+	importRenameList    []string
+	importExclude       []string
+	importSummaryFormat string
+	importQuiet         bool
 )
 
 var importCmd = &cobra.Command{
@@ -32,18 +34,19 @@ var importCmd = &cobra.Command{
 	Short: "Import secrets from .env, JSON, or YAML and store them encrypted",
 	Long: `Securely import secrets from a structured file and store them in encrypted format using the secret-hub import command. This operation helps onboard existing environment variables or configuration values into the secure storage backend—whether from .env, JSON, or YAML files.
 
-Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. Use --force to overwrite existing secrets intentionally, or --skip-existing to avoid modifying secrets that are already present.
+Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets unintentionally, use --skip-existing. For intentional replacements, use --force.
 
-To simulate the process without saving anything, use the --dry-run flag. This previews the secrets that would be imported, helping validate and audit input files before committing changes.
+Control over the import scope is provided through the --only flag to include specific secrets and --exclude to skip ones you don't want imported. You can organize secrets using --prefix, remap individual key names using --rename, and preview the import behavior without saving anything via the --dry-run flag.
 
-For targeted control, use --only to limit imports to specific keys, or --exclude to skip individual keys that should not be imported—even if they’re present in the source file. Combine this with --prefix to prepend an environment or system namespace to each secret, such as dev_, prod_, or staging_. For fine-grained remapping, the --rename flag allows custom key renaming via the format old=new, supporting multiple entries for tailored imports.
+After import completes, a summary of the operation is shown by default—listing how many secrets were imported, skipped, excluded, renamed, or failed. This can be printed in machine-readable format using --summary=json, or silenced entirely with --quiet for minimal output.
 
-The import process supports flexible file formats and includes robust error handling across parsing, encryption, and storage. Ideal for managing environment configs, migrating legacy secrets, and maintaining clarity across shared or multi-system setups.
+The import command supports flexible formats and provides robust error handling for parsing, encryption, and storage—making it ideal for managing environment configs, migrating shared secret sets, and maintaining clarity across secure systems.
 
 Usage:
   secret-hub import --file <path> --format <env|json|yaml> --key <keyfile> 
                   [--storage <filepath>] [--force] [--skip-existing] [--dry-run] [--only <keys>] [--rename <keys>]
-				  [--exclude <keys>]
+				  [--exclude <keys>] [--summary=json] [--quiet]
+				  
 Examples:
 # Import from a .env file into custom storage
   secret-hub import --file secrets.env --format env --key test-key.bin --storage imported-secrets.json 
@@ -80,6 +83,9 @@ Examples:
 
 # Dry run prefixing each key with dev_ (e.g., dev_API_KEY), renaming DATABASE_URL to db_url, and excluding DEBUG_MODE and LOCAL_SECRET—even if they’re in the file.
   secret-hub import --file=secrets.env --format env --prefix dev_ --rename DATABASE_URL=db_url --exclude DEBUG_MODE,LOCAL_SECRET --dry-run --file=secrets.env
+  
+# Import JSON secrets with a summary in machine-readable format:
+  secret-hub import --file secrets.json --key team-key --summary=json
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var (
@@ -202,19 +208,49 @@ Examples:
 			imported++
 		}
 
-		if importDryRun {
-			log.Printf("✅ Dry run complete. %d secrets would be imported from %s", len(data)-skipped-excluded, importFilePath)
-		} else {
-			log.Printf("✅ Import complete from %s", importFilePath)
+		summary := struct {
+			File     string `json:"file"`
+			DryRun   bool   `json:"dry_run"`
+			Imported int    `json:"imported"`
+			Skipped  int    `json:"skipped"`
+			Excluded int    `json:"excluded"`
+			Renamed  int    `json:"renamed"`
+		}{
+			File:     importFilePath,
+			DryRun:   importDryRun,
+			Imported: imported,
+			Skipped:  skipped,
+			Excluded: excluded,
+			Renamed:  renamed,
 		}
 
-		fmt.Println("\n📊 Import Summary")
-		fmt.Println("-----------------")
-		fmt.Printf("🔐 Imported     : %d\n", imported)
-		fmt.Printf("⚠️  Skipped      : %d\n", skipped)
-		fmt.Printf("⛔ Excluded     : %d\n", excluded)
-		fmt.Printf("✏️  Renamed      : %d\n", renamed)
-		fmt.Println()
+		if importQuiet {
+			return nil
+		}
+
+		switch importSummaryFormat {
+		case "json":
+			out, err := json.MarshalIndent(summary, "", "  ")
+			if err != nil {
+				return fmt.Errorf("failed to encode summary: %w", err)
+			}
+			fmt.Println(string(out))
+		default:
+			if importDryRun {
+				log.Printf("✅ Dry run complete. %d secrets would be imported from %s", imported, importFilePath)
+			} else {
+				log.Printf("✅ Import complete from %s", importFilePath)
+			}
+
+			fmt.Println("\n📊 Import Summary")
+			fmt.Println("-----------------")
+			fmt.Printf("🔐 Imported     : %d\n", summary.Imported)
+			fmt.Printf("⚠️  Skipped      : %d\n", summary.Skipped)
+			fmt.Printf("⛔ Excluded     : %d\n", summary.Excluded)
+			fmt.Printf("✏️  Renamed      : %d\n", summary.Renamed)
+			fmt.Println()
+		}
+
 		return nil
 	},
 }
@@ -233,6 +269,8 @@ func init() {
 	importCmd.Flags().StringVar(&importPrefix, "prefix", "", "Optional prefix to apply to all secret names")
 	importCmd.Flags().StringSliceVar(&importRenameList, "rename", nil, "Rename secret keys: use --rename old=new")
 	importCmd.Flags().StringSliceVar(&importExclude, "exclude", nil, "List of keys to exclude from import")
+	importCmd.Flags().StringVar(&importSummaryFormat, "summary", "text", "Output summary format: text (default), json")
+	importCmd.Flags().BoolVar(&importQuiet, "quiet", false, "Suppress summary output")
 
 	if err := viper.BindPFlag("import.key", importCmd.Flags().Lookup("key")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
