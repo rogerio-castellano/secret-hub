@@ -15,6 +15,7 @@ var (
 	listOutputJSON   bool
 	listOutputPretty bool
 	listFilterPrefix string
+	listQuiet        bool
 )
 
 var listCmd = &cobra.Command{
@@ -22,19 +23,24 @@ var listCmd = &cobra.Command{
 	Short: "List all stored secret names",
 	Long: `Use the secret-hub list command to enumerate all secrets stored in your configured secret store, without revealing any sensitive values. This is useful for verifying presence, auditing key names, or inspecting store structure.
 
-By default, the command reads from the secret store path specified via a flag or sourced from the .secret-hub.yaml configuration file in $HOME. It displays each stored secret's name clearly, even when storage is nested or namespaced.
+By default, the command reads from the secret store path specified via a flag or sourced from the .secret-hub.yaml configuration file in $HOME. It displays each stored secret’s name clearly, even when storage is nested or namespaced.
 
 You can tailor the output using:
-
 --json for machine-readable structured listing
-
 --pretty for human-friendly formatted listing (Note: --json and --pretty are mutually exclusive; only one may be used per invocation.)
+--filter=<prefix> to display only secrets whose names begin with the given prefix (e.g., --filter=prod_)
+--quiet to suppress all output Ideal for:
+	- Script automation with exit-code-only checks 
+		if ./secret-hub list --filter=prod_ --quiet; then echo "Production secrets are present" fi
+	- CI/CD integration where --json or --pretty output is redirected or parsed elsewhere 
+		secret-hub list --json --quiet > secrets.json
+	- Silent probing or counting operations 
+		count=$(./secret-hub list --filter=prod_ | wc -l) [ "$count" -gt 0 ] && echo "✅ Found $count production secrets"
+		OR ./secret-hub list --filter=prod_ --quiet && echo "✅ Prod secrets exist"
 
-🔍 To narrow results, use the --filter=<prefix> flag to display only secrets whose names begin with the given prefix. For example, --filter=prod_ will match secrets like prod_db_password, prod_api_key, etc.
+If no secrets are currently saved, a friendly message is printed—unless suppressed with --quiet.
 
-If no secrets are currently saved, a friendly message is printed to inform the user.
-
-The list command makes it easy to review what secrets exist, integrate visibility into build pipelines, or validate import results across your team's secure configuration workflows.
+This command is especially helpful for reviewing what secrets exist, integrating visibility into build pipelines, or validating import results across secure configuration workflows.
 
 Usage 
 	list [--storage <filepath>] [--json] [--pretty]
@@ -66,6 +72,10 @@ Example:
 				}
 			}
 			names = filtered
+		}
+
+		if listQuiet {
+			return nil
 		}
 
 		if listOutputJSON {
@@ -100,6 +110,7 @@ func init() {
 	listCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
 	listCmd.Flags().BoolVar(&listOutputJSON, "json", false, "Print output as JSON array")
 	listCmd.Flags().BoolVar(&listOutputPretty, "pretty", false, "Print formatted output (default)")
+	listCmd.Flags().BoolVar(&listQuiet, "quiet", false, "Suppress all output of list (useful for script automation and CI/CD)")
 	listCmd.Flags().StringVar(&listFilterPrefix, "filter", "", "Optional prefix filter (e.g., 'prod_')")
 
 	if err := viper.BindPFlag("list.storage", listCmd.Flags().Lookup("storage")); err != nil {
