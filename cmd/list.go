@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -9,15 +10,29 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	listOutputJSON   bool
+	listOutputPretty bool
+)
+
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all stored secret names",
-	Long: `List all stored secret names without revealing their values.
+	Long: `Use the secret-hub list command to enumerate all secrets stored in your configured secret store, without revealing any sensitive values. This is useful for verifying presence, auditing key names, or inspecting store structure.
 
-This command reads the configured secret store file and displays the names of all secrets currently saved. It helps you identify which secrets exist in the store without exposing their content. The storage path can be explicitly defined using a flag or sourced from the configuration file .secret-hub.yaml in $HOME. If no secrets are present, a friendly message is displayed.
+By default, the command reads from the secret store path specified via a flag or sourced from the .secret-hub.yaml configuration file in $HOME. It displays each stored secret's name clearly, even when storage is nested or namespaced.
+
+To tailor output for automation or readability, you can use:
+
+--json for machine-readable structured listing
+--pretty for human-friendly formatted listing
+
+These options list all stored secret names without exposing their contents. If no secrets are currently saved, a friendly message is printed to inform the user.
+
+The list command makes it easy to review what secrets exist, integrate visibility into build pipelines, or validate import results across your team's secure configuration workflows.
 
 Usage 
-	list [--storage <filepath>]
+	list [--storage <filepath>] [--json] [--pretty]
 
 Example:
   secret-hub list --storage secret-store.json
@@ -32,13 +47,27 @@ Example:
 		if err != nil {
 			return fmt.Errorf("failed to list secrets: %w", err)
 		}
+
+		if listOutputJSON {
+			out, err := json.MarshalIndent(names, "", "  ")
+			if err != nil {
+				return fmt.Errorf("failed to marshal JSON: %w", err)
+			}
+			fmt.Println(string(out))
+			return nil
+		}
+
 		if len(names) == 0 {
 			fmt.Println("No secrets found.")
 			return nil
 		}
-		fmt.Println("Stored secrets:")
-		for _, name := range names {
-			fmt.Println(" -", name)
+
+		if listOutputPretty || (!listOutputJSON && !listOutputPretty) {
+			fmt.Println("🔐 Secrets in store:")
+			fmt.Println("--------------------")
+			for _, name := range names {
+				fmt.Println("•", name)
+			}
 		}
 
 		return nil
@@ -49,6 +78,9 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().StringP("storage", "s", "", "Path to the secret store file")
+	listCmd.Flags().BoolVar(&listOutputJSON, "json", false, "Print output as JSON array")
+	listCmd.Flags().BoolVar(&listOutputPretty, "pretty", false, "Print formatted output (default)")
+
 	if err := viper.BindPFlag("list.storage", listCmd.Flags().Lookup("storage")); err != nil {
 		log.Fatalf("Failed to bind config key: %v", err)
 	}

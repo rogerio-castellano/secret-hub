@@ -36,7 +36,7 @@ var importCmd = &cobra.Command{
 
 Each value in the input file is encrypted using the key specified via the --key flag. You can define the output destination using --storage, or allow the tool to fall back to the default configured backend. To prevent overwriting existing secrets unintentionally, use --skip-existing; for intentional replacements, use --force.
 
-Control over the import scope is provided through the --only flag to include specific secrets and --exclude to skip ones you don’t want imported. You can organize secrets using --prefix, remap individual key names using --rename, and preview the import behavior without saving anything via the --dry-run flag.
+Control over the import scope is provided through the --only flag to include specific secrets and --exclude to skip ones you don't want imported. You can organize secrets using --prefix, remap individual key names using --rename, and preview the import behavior without saving anything via the --dry-run flag.
 
 If --format is not explicitly set, the tool will auto-detect the format from the file extension provided via --file—reducing manual configuration and smoothing CI/CD workflows. Supported extensions include .env, .json, and .yaml.
 
@@ -83,7 +83,7 @@ Examples:
 # Import the TOKEN secret as prod_ACCESS_TOKEN in storage, utilizing the combined effect of --prefix and --rename.
   secret-hub import app.env --prefix prod_ --rename TOKEN=ACCESS_TOKEN
 
-# Dry run prefixing each key with dev_ (e.g., dev_API_KEY), renaming DATABASE_URL to db_url, and excluding DEBUG_MODE and LOCAL_SECRET—even if they’re in the file.
+# Dry run prefixing each key with dev_ (e.g., dev_API_KEY), renaming DATABASE_URL to db_url, and excluding DEBUG_MODE and LOCAL_SECRET—even if they're in the file.
   secret-hub import --file=secrets.env --format env --prefix dev_ --rename DATABASE_URL=db_url --exclude DEBUG_MODE,LOCAL_SECRET --dry-run --file=secrets.env
   
 # Import JSON secrets with a summary in machine-readable format:
