@@ -36,7 +36,7 @@ Example:
 		storagePath := getStorage("search")
 		store := storage.NewFileStore(storagePath)
 
-		names, err := store.ListNames()
+		names, err := store.List()
 		if err != nil {
 			return fmt.Errorf("failed to list secrets: %w", err)
 		}

@@ -79,7 +79,7 @@ func (fs *FileStore) Get(name string) (*EncryptedSecret, error) {
 	return &secret, nil
 }
 
-func (fs *FileStore) ListNames() ([]string, error) {
+func (fs *FileStore) List() ([]string, error) {
 	secrets, err := fs.loadAll()
 	if err != nil {
 		return nil, err

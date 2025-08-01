@@ -57,7 +57,7 @@ Examples:
 		}
 
 		store := storage.NewFileStore(storagePath)
-		names, err := store.ListNames()
+		names, err := store.List()
 		if err != nil {
 			return fmt.Errorf("failed to list secret names: %w", err)
 		}
