@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestSecretHubIntegration(t *testing.T) {
+func TestSecretStorageFlow(t *testing.T) {
 	// Setup temp files
 	tmpDir := t.TempDir()
 	keyFile := tmpDir + "/key.bin"
@@ -68,6 +68,52 @@ func TestSecretHubIntegration(t *testing.T) {
 	}
 	if strings.Contains(output, secretName) {
 		t.Errorf("secret still present after delete: %s", output)
+	}
+}
+
+func TestSecretEncryptionDecryptionFlow(t *testing.T) {
+	tmpDir := t.TempDir()
+	keyFile := tmpDir + "/key.bin"
+	secretText := "This is a test secret."
+
+	// 1. Generate key
+	err := runCommand("go", "run", ".", "generate-key", "--out", keyFile)
+	if err != nil {
+		t.Fatalf("generate-key failed: %v", err)
+	}
+
+	//2. Generate file to encrypt
+	fileToEncryption := tmpDir + "/secret.txt"
+	err = os.WriteFile(fileToEncryption, []byte(secretText), 0644)
+	if err != nil {
+		t.Fatalf("failed to create secret file: %v", err)
+	}
+
+	//3. Encrypt secret
+	encryptedFile := tmpDir + "/secret.enc"
+	err = runCommand("go", "run", ".", "encrypt",
+		"--in", fileToEncryption, "--out", encryptedFile,
+		"--key", keyFile)
+	if err != nil {
+		t.Fatalf("encrypt failed: %v", err)
+	}
+
+	//4. Decrypt secret
+	decryptedFile := tmpDir + "/secret.dec.txt"
+	err = runCommand("go", "run", ".", "decrypt",
+		"--in", tmpDir+"/secret.enc", "--out", decryptedFile,
+		"--key", keyFile)
+	if err != nil {
+		t.Fatalf("decrypt failed: %v", err)
+	}
+
+	//5. Verify decrypted content
+	decryptedContent, err := os.ReadFile(decryptedFile)
+	if err != nil {
+		t.Fatalf("failed to read decrypted file: %v", err)
+	}
+	if string(decryptedContent) != secretText {
+		t.Errorf("decrypted content mismatch: got %s, want %s", decryptedContent, secretText)
 	}
 }
 
