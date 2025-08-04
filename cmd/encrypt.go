@@ -50,19 +50,16 @@ Examples:
 			return fmt.Errorf("failed to load key: %w", err)
 		}
 
-		// Read input
 		plaintext, err := iox.ReadInput(inputPath)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
 
-		// Encrypt
 		ciphertext, err := crypto.Encrypt(key, plaintext)
 		if err != nil {
 			return fmt.Errorf("encryption failed: %w", err)
 		}
 
-		// Write output
 		if base64Output {
 			encoded := base64.StdEncoding.EncodeToString(ciphertext)
 			if err := iox.WriteOutput(outputPath, []byte(encoded)); err != nil {
