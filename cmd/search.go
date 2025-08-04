@@ -28,9 +28,13 @@ If no matching names are found, a friendly notice will be displayed. This comman
 Usage 
 	search --query <substring> [--storage <filepath>]
 
-Example:
+Examples:
+# Search for secrets matching the keyword 'db' within the 'secret-store.json' storage file
   secret-hub search --query db --storage secret-store.json
+
+# Search for secrets matching the keyword 'db' using default configuration and storage
   secret-hub search --query db
+
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storagePath := getStorage("search")

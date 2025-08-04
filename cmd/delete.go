@@ -26,8 +26,12 @@ Usage
 	delete --name <secret_name> [--storage <filepath>]
 
 Examples:
+# Delete the secret named 'mysecret' from the 'secret-store.json' storage file
   secret-hub delete --name mysecret --storage secret-store.json
+
+# Delete the secret named 'db_password' using the default storage location
   secret-hub delete --name db_password
+
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storagePath := getStorage("delete")

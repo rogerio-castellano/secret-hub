@@ -34,9 +34,14 @@ Usage:
   decrypt --input <ciphertext> --output <plaintext> [--key <keyfile>] [--base64]
   
 Examples:
-  secret-hub decrypt --in secret.enc --out secret-dec.txt --key key.bin
-  secret-hub decrypt --in secret.enc --out secret-dec.txt
-  secret-hub decrypt --in secret.enc --out secret-dec.txt --key key.bin --base64
+# Decrypt 'secret.enc' using the key from 'key.bin'; output saved as 'secret-dec.txt'
+secret-hub decrypt --in secret.enc --out secret-dec.txt --key key.bin
+
+# Decrypt 'secret.enc' using default key and settings from the configuration file
+secret-hub decrypt --in secret.enc --out secret-dec.txt
+
+# Decrypt Base64-encoded 'secret.enc' using 'key.bin'; decoded output saved as 'secret-dec.txt'
+secret-hub decrypt --in secret.enc --out secret-dec.txt --key key.bin --base64
   `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		keyPath := getKey("decrypt")

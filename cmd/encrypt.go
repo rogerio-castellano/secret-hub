@@ -33,8 +33,13 @@ Usage:
   encrypt --input <plaintext> --output <ciphertext> [--key <keyfile>] [--base64]
 
 Examples:
+# Encrypt 'secret.txt' using the key provided in 'key.bin'; output saved as 'secret.enc'
   secret-hub encrypt --in secret.txt --out secret.enc --key key.bin
+
+# Encrypt 'secret.txt' using default key and settings from the configuration file
   secret-hub encrypt --in secret.txt --out secret.enc
+
+# Encrypt 'secret.txt' using 'key.bin' and encode the output in Base64 format
   secret-hub encrypt --in secret.txt --out secret.enc --key key.bin --base64
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

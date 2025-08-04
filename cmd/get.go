@@ -27,8 +27,11 @@ Optionally, you may specify a custom path to the secret store file. If no path i
 Usage 
 	get --name <secret_name> [--key <keyfile>] [--storage <filepath>]
 
-Example:
+Examples:
+# Retrieve the secret named 'db_password' from local storage file 'secret-store.json' using the decryption key from 'key.bin'
   secret-hub get --name db_password --key key.bin --storage secret-store.json
+
+# Retrieve the secret named 'db_password' using default configuration and key settings
   secret-hub get --name db_password
 `,
 

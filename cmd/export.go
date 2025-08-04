@@ -42,10 +42,16 @@ Usage:
   [--output <filename>]
 
 Examples:
+# Export all stored secrets in decrypted form using 'env' format and the key from 'key.bin'
   secret-hub export --format env --key key.bin
+
+# Export all stored secrets in decrypted form using 'json' format and 'key.bin'; redirect output to 'exported-secrets.json'
   secret-hub export --format json --key key.bin > exported-secrets.json
+
+# Export all stored secrets from 'secret-store.json' in 'yaml' format using the key from 'key.bin'
   secret-hub export --format yaml --key key.bin --storage secret-store.json
-  secret-hub export --format json --output .env
+
+# Export all stored secrets in 'env' format, save to '.env.generated', and include a brief summary of exported items
   secret-hub export --format env --summary --output .env.generated
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

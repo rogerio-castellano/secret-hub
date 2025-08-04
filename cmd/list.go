@@ -45,10 +45,16 @@ This command is especially helpful for reviewing what secrets exist, integrating
 Usage 
 	list [--storage <filepath>] [--json] [--pretty]
 
-Example:
-  secret-hub list --storage secret-store.json
-  secret-hub list
-  `,
+Examples:
+# List all stored secrets from the file 'secret-store.json'
+secret-hub list --storage secret-store.json
+
+# List all stored secrets and format the output as JSON for programmatic use or integration
+secret-hub list --json
+
+# List all stored secrets using default storage location
+secret-hub list
+`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if listOutputJSON && listOutputPretty {

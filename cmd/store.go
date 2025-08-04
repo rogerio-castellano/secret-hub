@@ -33,10 +33,16 @@ If a secret with the same name already exists, use the --force flag to overwrite
 Usage:
   store --name <secret_name> --value <secret_value> [--key <keyfile>] [--storage <filepath>] [--force]
 
-Example:
-  secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" 
+Examples:
+ # Store the secret 'db_password' with the value "p@ssw0rd" in 'secret-store.json', using 'key.bin' to encrypt
+  secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd"
+
+# Store the secret 'db_password' with the value "p@ssw0rd" using default encryption key and storage settings
   secret-hub store --name db_password --value "p@ssw0rd"
+
+# Overwrite existing 'db_password' secret with the new value "p@ssw0rd" in 'secret-store.json', using 'key.bin' and --force to overwrite if a secret with the same name already exists
   secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd" --force
+
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storeKey = getKey("store")

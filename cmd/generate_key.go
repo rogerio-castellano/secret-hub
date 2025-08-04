@@ -25,8 +25,11 @@ By default, the key is written to a file named key.bin unless a different path i
 Usage 
 	generate-key [--out <keyfile>]
 
-Example:
+Examples:
+# Generate a new encryption key and save it as 'custom-key.bin'
   secret-hub generate-key --out custom-key.bin
+
+# Generate a new encryption key and save it using the default file name and location
   secret-hub generate-key
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
