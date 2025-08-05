@@ -33,3 +33,4 @@ go.work.sum
 
 zzz-ignore/
 .vscode/launch.json
+.vscode/settings.json
