@@ -98,11 +98,17 @@ secret-hub list
 			return nil
 		}
 
-		if listOutputPretty || (!listOutputJSON && !listOutputPretty) {
+		if listOutputPretty {
 			fmt.Println("🔐 Secrets in store:")
 			fmt.Println("--------------------")
 			for _, name := range names {
 				fmt.Println("•", name)
+			}
+		}
+
+		if !listOutputJSON && !listOutputPretty {
+			for _, name := range names {
+				fmt.Println(name)
 			}
 		}
 
