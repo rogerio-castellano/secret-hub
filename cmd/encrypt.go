@@ -19,8 +19,8 @@ var (
 
 var encryptCmd = &cobra.Command{
 	Use:   "encrypt",
-	Short: "Encrypt a secret using AES-256-GCM",
-	Long: `Encrypt a secret using AES-256-GCM.
+	Short: "Encrypt a secret",
+	Long: `Encrypt a secret.
 
 This command encrypts a secret from a file or standard input using the AES-256-GCM algorithm. 
 You must specify both an input file and an output destination. By default, the encryption key is loaded from 

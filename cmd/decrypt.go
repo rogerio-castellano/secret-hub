@@ -19,8 +19,8 @@ var (
 
 var decryptCmd = &cobra.Command{
 	Use:   "decrypt",
-	Short: "Decrypt a secret using AES-256-GCM",
-	Long: `Decrypt a secret encrypted with AES-256-GCM.
+	Short: "Decrypt a secret",
+	Long: `Decrypt a secret.
 
 This command decrypts a secret from an encrypted file or standard input using the AES-256-GCM algorithm. 
 You must specify both the encrypted input source and the destination for the decrypted output. By default, 

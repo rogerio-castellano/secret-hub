@@ -29,7 +29,7 @@ Examples:
 # Generate a new encryption key and save it as 'custom-key.bin'
   secret-hub generate-key --out custom-key.bin
 
-# Generate a new encryption key and save it using the default file name and location
+# Generate a new encryption key and save it using the default file name
   secret-hub generate-key
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

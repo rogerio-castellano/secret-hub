@@ -21,7 +21,7 @@ var (
 var storeCmd = &cobra.Command{
 	Use:   "store",
 	Short: "Encrypt and store a secret by name",
-	Long: `Encrypt and store a secret by name using AES-256-GCM.
+	Long: `Encrypt and store a secret by name.
 
 This command securely encrypts a secret value with the AES-256-GCM algorithm and stores it under a unique name. 
 You must provide both the secret value and its corresponding name, as well as an encryption key sourced either 
@@ -34,7 +34,7 @@ Usage:
   store --name <secret_name> --value <secret_value> [--key <keyfile>] [--storage <filepath>] [--force]
 
 Examples:
- # Store the secret 'db_password' with the value "p@ssw0rd" in 'secret-store.json', using 'key.bin' to encrypt
+# Store the secret 'db_password' with the value "p@ssw0rd" in 'secret-store.json', using 'key.bin' to encrypt
   secret-hub store --key key.bin --storage=secret-store.json --name db_password --value "p@ssw0rd"
 
 # Store the secret 'db_password' with the value "p@ssw0rd" using default encryption key and storage settings
